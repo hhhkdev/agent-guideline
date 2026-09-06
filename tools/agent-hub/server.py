@@ -384,6 +384,112 @@ def parse_token_metrics():
     return stats
 
 
+
+def get_active_dev_ports():
+    """Detect all active listening TCP ports, identifying dev projects and processes."""
+    cmd = ["lsof", "-iTCP", "-sTCP:LISTEN", "-n", "-P"]
+    try:
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=3)
+    except Exception:
+        return []
+
+    if res.returncode != 0:
+        return []
+
+    lines = res.stdout.strip().splitlines()
+    if len(lines) <= 1:
+        return []
+
+    ports = []
+    seen = set()
+
+    for line in lines[1:]:
+        parts = line.split()
+        if len(parts) < 9:
+            continue
+        command = parts[0]
+        pid_str = parts[1]
+        user = parts[2]
+        node_name = parts[8]
+
+        port_match = re.search(r":(\d+)$", node_name)
+        if not port_match:
+            continue
+        port = int(port_match.group(1))
+
+        # Skip duplicates for same port & pid
+        key = (port, pid_str)
+        if key in seen:
+            continue
+        seen.add(key)
+
+        proc_cwd = "Unknown"
+        proc_cmd = command
+        try:
+            cwd_res = subprocess.run(["lsof", "-a", "-p", pid_str, "-d", "cwd", "-Fn"], capture_output=True, text=True, timeout=1)
+            for l in cwd_res.stdout.splitlines():
+                if l.startswith("n"):
+                    proc_cwd = l[1:]
+                    break
+        except Exception:
+            pass
+
+        try:
+            cmd_res = subprocess.run(["ps", "-p", pid_str, "-o", "command="], capture_output=True, text=True, timeout=1)
+            if cmd_res.returncode == 0 and cmd_res.stdout.strip():
+                proc_cmd = cmd_res.stdout.strip()
+        except Exception:
+            pass
+
+        is_dev_project = proc_cwd.startswith(ALLOWED_DEV_ROOT)
+        proj_name = os.path.basename(proc_cwd) if is_dev_project else "System / Background"
+
+        ports.append({
+            "port": port,
+            "pid": int(pid_str),
+            "command": command,
+            "cmdline": proc_cmd,
+            "cwd": proc_cwd,
+            "is_dev": is_dev_project,
+            "project_name": proj_name,
+            "user": user
+        })
+
+    # Sort so dev projects and low ports come first
+    ports.sort(key=lambda x: (not x["is_dev"], x["port"]))
+    return ports
+
+
+def terminate_process_on_port(port=None, pid=None):
+    """Safely terminate a process by PID or port."""
+    target_pid = pid
+    if not target_pid and port:
+        ports = get_active_dev_ports()
+        for p in ports:
+            if p["port"] == port:
+                target_pid = p["pid"]
+                break
+
+    if not target_pid:
+        return False, "Target process not found"
+
+    # Protect PID 1 and current server itself from accidental suicide
+    if target_pid <= 1 or target_pid == os.getpid():
+        return False, "Cannot terminate protected system or server process"
+
+    try:
+        # Graceful SIGTERM first
+        subprocess.run(["kill", "-15", str(target_pid)], check=True, timeout=2)
+        return True, f"Process {target_pid} stopped gracefully"
+    except Exception:
+        try:
+            # Force SIGKILL if needed
+            subprocess.run(["kill", "-9", str(target_pid)], check=True, timeout=2)
+            return True, f"Process {target_pid} killed forcefully"
+        except Exception as e:
+            return False, str(e)
+
+
 def get_skills_catalog():
     curated = [
         {
@@ -508,6 +614,8 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
             self.handle_get_subagents()
         elif path == "/api/security/status":
             self.handle_get_security_status()
+        elif path == "/api/ports":
+            self.handle_get_ports()
         else:
             if path == "/" or not os.path.exists(os.path.join(WEB_DIR, path.lstrip("/"))):
                 self.path = "/index.html"
@@ -539,6 +647,8 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
             self.handle_kill_subagent(payload)
         elif path == "/api/skills/add" or path == "/api/skills/webhook":
             self.handle_add_or_webhook_skill(payload)
+        elif path == "/api/ports/kill":
+            self.handle_kill_port(payload)
         else:
             self.send_error(404, "Not Found")
 
@@ -557,6 +667,17 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.end_headers()
+
+
+    def handle_get_ports(self):
+        ports = get_active_dev_ports()
+        self.json_response({"ports": ports})
+
+    def handle_kill_port(self, payload):
+        port = payload.get("port")
+        pid = payload.get("pid")
+        success, msg = terminate_process_on_port(port=port, pid=pid)
+        self.json_response({"success": success, "message": msg, "port": port, "pid": pid})
 
     def handle_get_projects(self):
         cfg = load_config()

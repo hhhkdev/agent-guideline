@@ -81,6 +81,9 @@
         <button onclick="switchTab('subagents')" id="tab-btn-subagents" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
           <span>🤖</span> <span class="hidden md:inline">서브에이전트</span>
         </button>
+        <button onclick="switchTab('ports')" id="tab-btn-ports" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
+          <span>🔌</span> <span class="hidden md:inline">포트 / 프로세스</span>
+        </button>
         <button onclick="switchTab('github')" id="tab-btn-github" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
           <span>🐙</span> <span class="hidden md:inline">GitHub 연동</span>
         </button>
@@ -271,6 +274,31 @@
             CLI: python3 tools/harness-cli.py subagent dispatch --role "..." --project "..."
           </div>
         </div>
+      </div>
+    </section>
+
+
+    <!-- ======================================================== -->
+    <!-- TAB: ACTIVE PORTS & PROCESS TERMINATOR                   -->
+    <!-- ======================================================== -->
+    <section id="tab-ports" class="tab-content hidden space-y-4">
+      <div class="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <span>🔌 구동 중인 포트 & 프로세스 실시간 감시</span>
+            <span id="active-ports-count-badge" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">0 Ports</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">내 맥북에서 어떤 프로젝트가 몇 번 포트에서 돌고 있는지 확인하고, 필요 시 원클릭으로 프로세스를 종료합니다.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="loadPorts()" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 text-xs font-semibold flex items-center gap-1 transition">
+            <span>🔄 새로고침</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="ports-grid">
+        <!-- Injected via JS -->
       </div>
     </section>
 
@@ -526,6 +554,7 @@
       if (id === 'skills') loadSkills();
       if (id === 'subagents') loadSubagents();
       if (id === 'docs') loadDocs();
+      if (id === 'ports') loadPorts();
     }
 
     // Projects & Multi-repo Activity
@@ -1008,6 +1037,87 @@
       } finally {
         btn.disabled = false;
         btn.innerText = '🚀 프로젝트 생성 및 Git 초기화';
+      }
+    }
+
+
+    // Active Ports & Processes
+    async function loadPorts() {
+      try {
+        const res = await fetch('/api/ports');
+        const data = await res.json();
+        const ports = data.ports || [];
+        document.getElementById('active-ports-count-badge').innerText = `${ports.length} Ports Active`;
+        renderPorts(ports);
+      } catch (e) { console.error(e); }
+    }
+
+    function renderPorts(list) {
+      const container = document.getElementById('ports-grid');
+      if (!list.length) {
+        container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-500 text-xs glass-card rounded-2xl">현재 실행 중인 포트가 없습니다.</div>`;
+        return;
+      }
+      container.innerHTML = list.map(p => {
+        const isDev = p.is_dev;
+        const isSelf = p.port === 8765;
+        const borderClass = isSelf ? 'border-indigo-500/40 bg-indigo-950/20' : (isDev ? 'border-emerald-500/30' : 'border-white/5');
+        const statusBadge = isSelf ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300">Agent Hub 서버</span>' : (isDev ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300">내 프로젝트</span>' : '<span class="px-1.5 py-0.5 rounded text-[9px] bg-slate-800 text-slate-400">시스템/백그라운드</span>');
+
+        return `
+          <div class="glass-card p-4 rounded-2xl space-y-3 ${borderClass} flex flex-col justify-between hover:border-white/20 transition">
+            <div>
+              <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center font-mono font-bold text-xs text-white">
+                    :${p.port}
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-sm text-white truncate max-w-[170px]" title="${p.project_name}">${p.project_name}</h4>
+                    <div class="text-[10px] text-slate-400 mono">PID: ${p.pid} · ${p.command}</div>
+                  </div>
+                </div>
+                ${statusBadge}
+              </div>
+
+              <div class="bg-black/40 p-2.5 rounded-xl space-y-1 text-[11px] text-slate-400 mono select-all">
+                <div class="truncate text-slate-300" title="${p.cmdline}">CMD: ${p.cmdline.slice(0, 55)}...</div>
+                <div class="truncate text-slate-500 text-[10px]" title="${p.cwd}">CWD: ${p.cwd}</div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-white/10 flex justify-between items-center">
+              <a href="http://localhost:${p.port}" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                <span>🔗 브라우저 열기</span>
+              </a>
+              ${isSelf ? `<span class="text-[10px] text-slate-500">현재 서버 (보호됨)</span>` : `
+                <button onclick="killPortProcess(${p.port}, ${p.pid})" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition flex items-center gap-1 shadow">
+                  <span>🛑 종료</span>
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function killPortProcess(port, pid) {
+      if (!confirm(`포트 :${port} (PID: ${pid}) 프로세스를 종료하시겠습니까?`)) return;
+      try {
+        const res = await fetch('/api/ports/kill', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ port, pid })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`포트 :${port} 프로세스가 종료되었습니다.`);
+          loadPorts();
+        } else {
+          alert(`종료 실패: ${data.message}`);
+        }
+      } catch (e) {
+        alert(`오류: ${e}`);
       }
     }
 

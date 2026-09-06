@@ -310,9 +310,48 @@ def clone_project(url, custom_name=None, template="auto"):
         print(f"❌ Clone Error: {e}")
 
 def launch_desktop():
-    script_path = os.path.join(REPO_ROOT, "tools", "launch-desktop.sh")
+    app_path = os.path.join(REPO_ROOT, "tools", "Agent Hub.app")
     import subprocess
-    subprocess.run(["bash", script_path])
+    if os.path.exists(app_path):
+        print("🖥️  Opening standalone 'Agent Hub.app' with custom icon and status bar...")
+        subprocess.run(["open", app_path])
+    else:
+        script_path = os.path.join(REPO_ROOT, "tools", "launch-desktop.sh")
+        subprocess.run(["bash", script_path])
+
+
+def list_ports():
+    import sys
+    sys.path.insert(0, os.path.join(REPO_ROOT, "tools", "agent-hub"))
+    import server
+    ports = server.get_active_dev_ports()
+    print("\n🔌 Active Listening Ports & Running Projects:")
+    print("=" * 70)
+    for p in ports:
+        status_tag = "🚀 [DEV PROJECT]" if p["is_dev"] else "⚙️  [SYSTEM/BG]"
+        print(f"Port :{p['port']:<6} | PID: {p['pid']:<7} | {status_tag} {p['project_name']}")
+        print(f"   Cmd: {p['command']} -> {p['cmdline'][:60]}...")
+        if p["is_dev"]:
+            print(f"   Dir: {p['cwd']}")
+        print("-" * 70)
+    print()
+
+def kill_port_cli(port=None, pid=None):
+    import sys
+    sys.path.insert(0, os.path.join(REPO_ROOT, "tools", "agent-hub"))
+    import server
+    success, msg = server.terminate_process_on_port(port=port, pid=pid)
+    if success:
+        print(f"✓ {msg}")
+    else:
+        print(f"❌ Failed to terminate: {msg}")
+
+def launch_menubar():
+    bin_path = os.path.join(REPO_ROOT, "tools", "status-bar", "agent-hub-menubar")
+    import subprocess
+    print("⚡ Starting Agent Hub Status Bar monitor in background...")
+    subprocess.Popen([bin_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    print("✓ Status Bar icon running! Check your macOS top menu bar for ⚡ C:% G:% O:%")
 
 def main():
     parser = argparse.ArgumentParser(description="Agent Harness Management CLI")
@@ -349,6 +388,13 @@ def main():
     create_p = subparsers.add_parser("create-project", help="Create a new sandboxed project")
     create_p.add_argument("name", help="Project name (under /Users/hhhk/dev)")
     create_p.add_argument("--template", help="Harness template (nextjs-fullstack, react-native-expo, flutter-riverpod, spring-boot-jvm, design-system, universal)", default="universal")
+
+    ports_p = subparsers.add_parser("ports", help="List active ports and running projects")
+    
+    kill_port_p = subparsers.add_parser("kill-port", help="Kill process running on specific port")
+    kill_port_p.add_argument("port", type=int, help="Port number to kill (e.g. 3000)")
+
+    subparsers.add_parser("menubar", help="Launch macOS menu bar status monitor")
 
     clone_p = subparsers.add_parser("clone", help="Clone GitHub repo and auto-inject harness")
     clone_p.add_argument("url", help="GitHub repo URL")
@@ -387,6 +433,12 @@ def main():
             sub_p.print_help()
     elif args.command == "create-project":
         create_project(args.name, args.template)
+    elif args.command == "ports":
+        list_ports()
+    elif args.command == "kill-port":
+        kill_port_cli(port=args.port)
+    elif args.command == "menubar":
+        launch_menubar()
     elif args.command == "clone":
         clone_project(args.url, args.name, args.template)
     elif args.command == "desktop":
