@@ -56,11 +56,15 @@
       padding: 0.5rem;
     }
 
+    html {
+      scrollbar-gutter: stable;
+      overflow-y: scroll;
+    }
+
     /* Mobile UX Enhancements */
     @media (max-width: 640px) {
       .tab-btn { padding: 0.4rem 0.6rem; min-height: 36px; }
       input, select, textarea, button { font-size: 14px !important; min-height: 40px; }
-      #floating-hud-widget { bottom: 12px; right: 12px; }
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -88,12 +92,12 @@
   <div class="fixed top-0 left-1/4 w-[500px] h-[260px] bg-indigo-600/[0.07] rounded-full blur-[140px] pointer-events-none -z-10"></div>
   <div class="fixed bottom-0 right-10 w-[400px] h-[260px] bg-purple-600/[0.07] rounded-full blur-[140px] pointer-events-none -z-10"></div>
 
-  <!-- Minimalist High-Utility Header -->
-  <header class="sticky top-0 z-50 glass-panel border-b border-white/[0.06] px-3 sm:px-6 py-2 transition-all">
-    <div class="max-w-[1750px] mx-auto flex items-center justify-between gap-3">
+  <!-- Minimalist Centered Header -->
+  <header class="sticky top-0 z-50 glass-panel border-b border-white/[0.06] px-3 sm:px-6 py-2.5 transition-all">
+    <div class="max-w-[1750px] mx-auto flex items-center justify-center">
       
-      <!-- Segmented Navigation (Linear/Vercel Style, Clean, Touch-Friendly) -->
-      <nav class="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/[0.08] overflow-x-auto no-scrollbar w-full sm:w-auto justify-start sm:justify-center backdrop-blur-md">
+      <!-- Segmented Navigation (Linear/Vercel Style, Centered, Touch-Friendly) -->
+      <nav class="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/[0.08] overflow-x-auto no-scrollbar justify-center backdrop-blur-md">
         <button onclick="switchTab('projects')" id="tab-btn-projects" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-white/10 text-white border border-white/10 shadow-sm transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
           <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
           <span>프로젝트</span>
@@ -130,74 +134,22 @@
   <main class="flex-1 p-3 sm:p-5 lg:p-6 max-w-[1750px] w-full mx-auto space-y-4">
 
     <!-- ======================================================== -->
-    <!-- TAB 1: PROJECTS & WORKSPACE ACTIVITY                     -->
+    <!-- TAB 1: PROJECTS (Active Projects Only, Clean Unboxed)    -->
     <!-- ======================================================== -->
     <section id="tab-projects" class="tab-content space-y-4">
-      
-      <!-- Git Contribution Grass (개발 잔디) Card -->
-      <div class="glass-panel p-4 rounded-2xl space-y-2.5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <h3 class="text-xs font-semibold text-slate-200">기여도 히트맵 (최근 90일)</h3>
-            <span id="git-total-commits-badge" class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-medium">계산 중...</span>
-          </div>
-          <div class="flex items-center gap-1 text-[10px] text-slate-500">
-            <span>Less</span>
-            <span class="w-2.5 h-2.5 rounded-sm bg-slate-900 border border-white/5"></span>
-            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-950 border border-emerald-800/40"></span>
-            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-700"></span>
-            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span>
-            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-400"></span>
-            <span>More</span>
-          </div>
+      <!-- Unboxed Open Typography Header -->
+      <div class="flex items-center justify-between pt-1 pb-1">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+            <span>프로젝트</span>
+            <span id="active-projects-badge" class="px-2 py-0.5 text-[10px] font-mono font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">0개 활동 중</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">현재 작업 및 최근 활성화된 프로젝트</p>
         </div>
-
-        <!-- Scrollable Grass Container -->
-        <div class="overflow-x-auto pb-1 no-scrollbar">
-          <div id="git-grass-grid" class="flex gap-1 min-w-max items-center py-0.5">
-            <!-- Injected via JS: 13-14 week columns of 7 day squares -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Streamlined Single-Row Toolbar -->
-      <div class="glass-panel p-2.5 sm:p-3 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
-        <!-- Filter Pills with Smooth Mobile Scroll -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
-          <button onclick="setProjectFilter('active')" id="filter-pill-active" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-medium bg-white/10 text-white border border-white/15 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 shadow-sm">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span>최근 활동</span>
-            <span id="badge-active-count" class="mono text-[10px] text-slate-400">0</span>
-          </button>
-          <button onclick="setProjectFilter('all')" id="filter-pill-all" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white border border-transparent transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
-            <span>전체</span>
-            <span id="badge-all-count" class="mono text-[10px] text-slate-500">0</span>
-          </button>
-          <button onclick="setProjectFilter('archived')" id="filter-pill-archived" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white border border-transparent transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
-            <span>보관됨</span>
-            <span id="badge-archived-count" class="mono text-[10px] text-slate-500">0</span>
-          </button>
-        </div>
-
-        <!-- Search & Family Selector -->
-        <div class="flex items-center gap-2 flex-1 md:flex-initial">
-          <select id="family-filter-select" onchange="renderFilteredProjects()" class="px-2.5 py-1.5 text-xs bg-black/60 border border-white/10 rounded-xl text-slate-300 focus:outline-none focus:border-white/20">
-            <option value="all">전체 그룹</option>
-            <option value="teumteum">teumteum</option>
-            <option value="1D1S">1D1S</option>
-            <option value="hivcd">hivcd</option>
-            <option value="please-2000won">please-2000won</option>
-            <option value="CampusYA">CampusYA</option>
-          </select>
-          <div class="relative flex-1 sm:w-56">
-            <input type="text" id="project-search-input" oninput="renderFilteredProjects()" placeholder="프로젝트, 스택, 브랜치 검색..." class="w-full pl-7 pr-3 py-1.5 text-xs bg-black/60 border border-white/10 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-white/20">
-            <svg class="w-3.5 h-3.5 absolute left-2 top-2 text-slate-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          </div>
-          <button onclick="loadProjects()" title="새로고침" class="p-2 text-xs font-medium rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition flex-shrink-0">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-          </button>
-        </div>
+        <button onclick="loadProjects()" title="새로고침" class="h-8 px-3 text-xs font-medium rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition inline-flex items-center gap-1.5 shadow-sm">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span class="hidden sm:inline">새로고침</span>
+        </button>
       </div>
 
       <!-- Project Cards Grid -->
@@ -205,27 +157,24 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 2: UNIFIED 3-PROVIDER PLAN QUOTAS                    -->
+    <!-- TAB 2: UNIFIED 3-PROVIDER PLAN QUOTAS (Ultra Minimal)    -->
     <!-- ======================================================== -->
     <section id="tab-quota" class="tab-content hidden space-y-4">
-      <div class="glass-panel px-4 py-3 rounded-2xl flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2.5">
-          <svg class="w-4 h-4 text-amber-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          <div>
-            <div class="flex items-center gap-2">
-              <h2 class="text-xs sm:text-sm font-semibold text-white">AI 플랜 쿼터 & 한도 모니터</h2>
-              <span class="px-2 py-0.5 text-[10px] font-mono font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 실시간
-              </span>
-            </div>
-            <p class="text-[11px] text-slate-400">5시간 슬라이딩 롤링 소진율 및 주간 사용 통계</p>
-          </div>
+      <!-- Unboxed Open Typography Header -->
+      <div class="flex items-center justify-between pt-1 pb-1">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+            <span>AI 플랜 쿼터</span>
+            <span class="px-2 py-0.5 text-[10px] font-mono font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 실시간 동기화
+            </span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Claude CLI 및 ChatGPT 실시간 롤링 소진율</p>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="loadQuota()" title="새로고침" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 text-xs transition">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-          </button>
-        </div>
+        <button onclick="loadQuota()" title="새로고침" class="h-8 px-3 text-xs font-medium rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition inline-flex items-center gap-1.5 shadow-sm">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span class="hidden sm:inline">새로고침</span>
+        </button>
       </div>
 
       <!-- 3 Providers Cards (Standardized 5h & Weekly) -->
@@ -235,57 +184,58 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 3: DYNAMIC SKILLS MARKETPLACE & WEBHOOK INGESTION    -->
+    <!-- TAB 3: DYNAMIC SKILLS MARKETPLACE (Single-Column List)   -->
     <!-- ======================================================== -->
     <section id="tab-skills" class="tab-content hidden space-y-4">
-      <div class="glass-panel px-4 py-3 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <!-- Unboxed Open Typography Header -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1 pb-1">
         <div>
-          <div class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-purple-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            <h2 class="text-xs sm:text-sm font-semibold text-white">AI 스킬 카탈로그</h2>
+          <h2 class="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+            <span>AI 스킬 카탈로그</span>
             <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20 font-mono">Archive</span>
-          </div>
-          <p class="text-xs text-slate-400 mt-0.5">프로젝트 맞춤형 AI 스킬 검색 및 원클릭 적용</p>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">프로젝트 맞춤형 AI 스킬 목록 및 원클릭 복사</p>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="openAddSkillModal()" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-medium text-xs border border-white/10 transition flex items-center gap-1.5 shadow-sm">
+          <button onclick="openAddSkillModal()" class="h-8 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-medium text-xs border border-white/10 transition inline-flex items-center gap-1.5 shadow-sm">
             <span>+</span> <span>스킬 직접 등록</span>
           </button>
-          <button onclick="showWebhookGuide()" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 text-xs transition">
+          <button onclick="showWebhookGuide()" class="h-8 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 text-xs transition inline-flex items-center">
             웹훅 API
           </button>
         </div>
       </div>
 
       <!-- Filter Categories -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-        <button onclick="filterSkills('all')" class="skill-filter-btn px-2.5 py-1 rounded-lg bg-white/10 text-white font-medium border border-white/10">전체</button>
-        <button onclick="filterSkills('UI & Design')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-black/40 border border-white/5">UI / Design</button>
-        <button onclick="filterSkills('Mobile')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-black/40 border border-white/5">Mobile / iOS</button>
-        <button onclick="filterSkills('Frontend & API')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-black/40 border border-white/5">Frontend & API</button>
-        <button onclick="filterSkills('DevOps & Git')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-black/40 border border-white/5">DevOps & Git</button>
-        <button onclick="filterSkills('Planning')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-black/40 border border-white/5">기획 / PRD</button>
-        <button onclick="filterSkills('Community & Automation')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-black/40 border border-white/5">Webhook 등록</button>
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+        <button onclick="filterSkills('all')" class="skill-filter-btn px-3 py-1.5 rounded-xl bg-white/10 text-white font-medium border border-white/10 transition">전체</button>
+        <button onclick="filterSkills('UI & Design')" class="skill-filter-btn px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-black/40 border border-white/5 transition">UI & Design</button>
+        <button onclick="filterSkills('Mobile')" class="skill-filter-btn px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-black/40 border border-white/5 transition">Mobile / iOS</button>
+        <button onclick="filterSkills('Frontend & API')" class="skill-filter-btn px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-black/40 border border-white/5 transition">Frontend & API</button>
+        <button onclick="filterSkills('Backend & API')" class="skill-filter-btn px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-black/40 border border-white/5 transition">Backend & JVM</button>
+        <button onclick="filterSkills('DevOps & Git')" class="skill-filter-btn px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-black/40 border border-white/5 transition">DevOps & Git</button>
+        <button onclick="filterSkills('Planning')" class="skill-filter-btn px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-black/40 border border-white/5 transition">기획 / PRD</button>
       </div>
 
-      <div id="skills-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <!-- Skills 1-Column List -->
+      <div id="skills-grid" class="flex flex-col gap-2.5"></div>
     </section>
 
     <!-- ======================================================== -->
     <!-- TAB 4: SUBAGENT WORKER PIPELINE                          -->
     <!-- ======================================================== -->
     <section id="tab-subagents" class="tab-content hidden space-y-4">
-      <div class="glass-panel px-4 py-3 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <!-- Unboxed Open Typography Header -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1 pb-1">
         <div>
-          <div class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-sky-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
-            <h2 class="text-xs sm:text-sm font-semibold text-white">서브에이전트 파이프라인</h2>
+          <h2 class="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+            <span>서브에이전트 파이프라인</span>
             <span id="subagents-count-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/20 font-mono">0 Active</span>
-          </div>
+          </h2>
           <p class="text-xs text-slate-400 mt-0.5">프로젝트별 전문 워커 에이전트 현황 및 태스크 위임</p>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="killAllSubagents()" class="px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 text-xs font-medium transition">
+          <button onclick="killAllSubagents()" class="h-8 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 text-xs font-medium transition inline-flex items-center">
             전체 워커 회수 (Reset)
           </button>
         </div>
@@ -309,39 +259,39 @@
             <option value="please-2000won-frontend">please-2000won-frontend</option>
           </select>
           <input type="text" id="sub-prompt" required placeholder="수행할 태스크 입력 (예: iOS 번들러 빌드 점검 및 PR 생성)..." class="flex-1 w-full px-3 py-2 bg-black/60 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-white/20">
-          <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl border border-white/10 transition shadow-sm whitespace-nowrap">
+          <button type="submit" class="h-9 px-4 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl border border-white/10 transition shadow-sm whitespace-nowrap inline-flex items-center justify-center">
             즉시 투입
           </button>
         </form>
       </div>
 
       <!-- Active Workers Grid -->
-      <div id="subagents-workers-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div id="subagents-workers-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
         <!-- Rendered via JS -->
       </div>
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB: ACTIVE PORTS & PROCESS TERMINATOR                   -->
+    <!-- TAB: ACTIVE PORTS (Single-Column List with Accordion)    -->
     <!-- ======================================================== -->
     <section id="tab-ports" class="tab-content hidden space-y-4">
-      <div class="glass-panel px-4 py-3 rounded-2xl flex items-center justify-between gap-3">
+      <!-- Unboxed Open Typography Header -->
+      <div class="flex items-center justify-between pt-1 pb-1">
         <div>
-          <div class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
-            <h2 class="text-xs sm:text-sm font-semibold text-white">개발 포트 모니터</h2>
+          <h2 class="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+            <span>개발 포트 모니터</span>
             <span id="active-ports-count-badge" class="px-2 py-0.5 text-[10px] font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">0 Ports</span>
-          </div>
+          </h2>
           <p class="text-xs text-slate-400 mt-0.5">로컬 프로젝트 구동 포트 감시 및 프로세스 제어</p>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="loadPorts()" title="새로고침" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 text-xs transition">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-          </button>
-        </div>
+        <button onclick="loadPorts()" title="새로고침" class="h-8 px-3 text-xs font-medium rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition inline-flex items-center gap-1.5 shadow-sm">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span class="hidden sm:inline">새로고침</span>
+        </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="ports-grid">
+      <!-- Single-Column List of Ports with Drawer -->
+      <div class="flex flex-col gap-2.5" id="ports-grid">
         <!-- Injected via JS -->
       </div>
     </section>
@@ -349,92 +299,94 @@
     <!-- ======================================================== -->
     <!-- TAB 5: GITHUB INTEGRATION & PROJECT CREATION/CLONE       -->
     <!-- ======================================================== -->
-    <section id="tab-github" class="tab-content hidden space-y-4 max-w-4xl mx-auto">
-      <div class="glass-panel p-5 rounded-2xl space-y-5 text-xs">
-        <div>
-          <div class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-rose-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
-            <h2 class="text-sm font-semibold text-white">GitHub 연동 & 프로젝트 생성</h2>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 font-mono">Sandbox</span>
+    <section id="tab-github" class="tab-content hidden space-y-4 max-w-5xl mx-auto">
+      <!-- Unboxed Open Typography Header -->
+      <div class="pt-1 pb-1">
+        <h2 class="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+          <span>GitHub 연동 & 프로젝트 생성</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 font-mono">Workspace</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5">안전한 샌드박스 격리 환경 내 신규 프로젝트 생성 및 Git 복제</p>
+      </div>
+
+      <!-- Spacious Dual Panel (Clone & Create) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        
+        <!-- Mode 1: 1-Click Clone -->
+        <div class="glass-card p-6 rounded-2xl space-y-4 text-xs">
+          <div class="flex items-center gap-2 pb-3 border-b border-white/10">
+            <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <h3 class="font-bold text-white text-sm">GitHub 레포지토리 Clone</h3>
           </div>
-          <p class="text-slate-400 mt-0.5">샌드박스 격리 환경 내 레포지토리 클론 및 하네스 초기화</p>
+          <form onsubmit="handleCloneSubmit(event)" class="space-y-3.5">
+            <div>
+              <label class="text-slate-300 block mb-1.5 font-medium">GitHub 저장소 URL</label>
+              <input type="text" id="clone-url" required placeholder="https://github.com/username/my-repo.git" class="w-full px-3.5 py-2.5 bg-black/60 border border-white/10 rounded-xl text-white mono text-xs focus:outline-none focus:border-indigo-500/50">
+            </div>
+            <div>
+              <label class="text-slate-300 block mb-1.5 font-medium">로컬 폴더명 (생략 시 레포명 자동 사용)</label>
+              <div class="flex">
+                <span class="px-3 py-2.5 bg-slate-900 border border-r-0 border-white/10 text-slate-500 mono rounded-l-xl text-xs flex items-center">dev/</span>
+                <input type="text" id="clone-name" placeholder="my-repo" class="flex-1 px-3.5 py-2.5 bg-black/60 border border-white/10 rounded-r-xl text-white mono text-xs focus:outline-none focus:border-indigo-500/50">
+              </div>
+            </div>
+            <div>
+              <label class="text-slate-300 block mb-1.5 font-medium">하네스 템플릿 적용</label>
+              <select id="clone-template" class="w-full px-3.5 py-2.5 bg-black/60 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500/50">
+                <option value="none">하네스 미적용 (순수 Git Clone)</option>
+                <option value="auto">자동 감지 (Auto Detect & Inject)</option>
+                <option value="nextjs-fullstack">Next.js Fullstack (App Router, Tailwind)</option>
+                <option value="react-native-expo">React Native Expo (iOS & Swift Widgets)</option>
+                <option value="flutter-riverpod">Flutter Riverpod (Clean Architecture)</option>
+                <option value="spring-boot-jvm">Spring Boot 3 (JPA Record DTO)</option>
+                <option value="design-system">Design System (Storybook)</option>
+                <option value="universal">Universal Standard Harness</option>
+              </select>
+            </div>
+            <button type="submit" id="btn-clone-submit" class="w-full h-10 mt-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md inline-flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>안전 Clone 실행</span>
+            </button>
+          </form>
+          <div id="clone-result-box" class="hidden p-3 bg-black/80 rounded-xl border border-white/10 text-xs"></div>
         </div>
 
-        <!-- Mode Tabs: 1. Clone vs 2. Create New Repo -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          <!-- Mode 1: 1-Click Clone -->
-          <div class="glass-card p-4 rounded-xl space-y-3">
-            <div class="flex items-center gap-2 pb-2 border-b border-white/10">
-              <h3 class="font-medium text-white text-xs">GitHub 레포지토리 Clone</h3>
-            </div>
-            <form onsubmit="handleCloneSubmit(event)" class="space-y-3">
-              <div>
-                <label class="text-slate-400 block mb-1">GitHub 저장소 URL</label>
-                <input type="text" id="clone-url" required placeholder="https://github.com/hhhkdev/my-repo.git" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white mono text-[11px]">
-              </div>
-              <div>
-                <label class="text-slate-400 block mb-1">로컬 폴더명 (생략 시 레포명 자동 사용)</label>
-                <div class="flex">
-                  <span class="px-2.5 py-1.5 bg-slate-900 border border-r-0 border-white/10 text-slate-500 mono rounded-l-xl">dev/</span>
-                  <input type="text" id="clone-name" placeholder="my-repo" class="flex-1 px-3 py-1.5 bg-slate-950 border border-white/10 rounded-r-xl text-white mono text-[11px]">
-                </div>
-              </div>
-              <div>
-                <label class="text-slate-400 block mb-1">하네스 템플릿 적용</label>
-                <select id="clone-template" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
-                  <option value="auto">자동 감지 (Auto Detect)</option>
-                  <option value="nextjs-fullstack">Next.js Fullstack</option>
-                  <option value="react-native-expo">React Native Expo</option>
-                  <option value="flutter-riverpod">Flutter Riverpod</option>
-                  <option value="spring-boot-jvm">Spring Boot JVM</option>
-                  <option value="design-system">Design System</option>
-                  <option value="universal">Universal</option>
-                </select>
-              </div>
-              <button type="submit" id="btn-clone-submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md">
-                📥 1-Click 안전 Clone 및 하네스 주입
-              </button>
-            </form>
-            <div id="clone-result-box" class="hidden p-2.5 bg-black/60 rounded-xl border border-white/10 text-[11px]"></div>
+        <!-- Mode 2: Create New Repo with Scaffold -->
+        <div class="glass-card p-6 rounded-2xl space-y-4 text-xs">
+          <div class="flex items-center gap-2 pb-3 border-b border-white/10">
+            <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <h3 class="font-bold text-white text-sm">새 프로젝트 생성 & Git 초기화</h3>
           </div>
-
-          <!-- Mode 2: Create New Repo with Scaffold -->
-          <div class="glass-card p-4 rounded-xl space-y-3">
-            <div class="flex items-center gap-2 pb-2 border-b border-white/10">
-              <span class="text-sm">✨</span>
-              <h3 class="font-bold text-white text-xs">새 프로젝트 & GitHub 연결</h3>
+          <form onsubmit="handleCreateWithGit(event)" class="space-y-3.5">
+            <div>
+              <label class="text-slate-300 block mb-1.5 font-medium">신규 프로젝트명</label>
+              <div class="flex">
+                <span class="px-3 py-2.5 bg-slate-900 border border-r-0 border-white/10 text-slate-500 mono rounded-l-xl text-xs flex items-center">dev/</span>
+                <input type="text" id="new-proj-name" required placeholder="awesome-service" class="flex-1 px-3.5 py-2.5 bg-black/60 border border-white/10 rounded-r-xl text-white mono text-xs focus:outline-none focus:border-emerald-500/50">
+              </div>
             </div>
-            <form onsubmit="handleCreateWithGit(event)" class="space-y-3">
-              <div>
-                <label class="text-slate-400 block mb-1">신규 프로젝트명</label>
-                <div class="flex">
-                  <span class="px-2.5 py-1.5 bg-slate-900 border border-r-0 border-white/10 text-slate-500 mono rounded-l-xl">dev/</span>
-                  <input type="text" id="new-proj-name" required placeholder="awesome-service" class="flex-1 px-3 py-1.5 bg-slate-950 border border-white/10 rounded-r-xl text-white mono text-[11px]">
-                </div>
-              </div>
-              <div>
-                <label class="text-slate-400 block mb-1">하네스 스택 템플릿</label>
-                <select id="new-proj-tpl" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
-                  <option value="nextjs-fullstack">Next.js Fullstack (App Router, Tailwind)</option>
-                  <option value="react-native-expo">React Native Expo (Swift Widgets)</option>
-                  <option value="flutter-riverpod">Flutter Riverpod (Clean Architecture)</option>
-                  <option value="spring-boot-jvm">Spring Boot 3 (JPA Record DTO)</option>
-                  <option value="design-system">Design System (Storybook)</option>
-                </select>
-              </div>
-              <div>
-                <label class="text-slate-400 block mb-1">연결할 GitHub 원격 URL (선택 사항)</label>
-                <input type="text" id="new-proj-remote" placeholder="https://github.com/hhhkdev/awesome-service.git" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white mono text-[11px]">
-              </div>
-              <button type="submit" id="btn-create-submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-md">
-                🚀 프로젝트 생성 및 Git 초기화
-              </button>
-            </form>
-            <div id="create-result-box" class="hidden p-2.5 bg-black/60 rounded-xl border border-white/10 text-[11px]"></div>
-          </div>
-
+            <div>
+              <label class="text-slate-300 block mb-1.5 font-medium">하네스 스택 템플릿</label>
+              <select id="new-proj-tpl" class="w-full px-3.5 py-2.5 bg-black/60 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-emerald-500/50">
+                <option value="nextjs-fullstack">Next.js Fullstack (App Router, Tailwind)</option>
+                <option value="react-native-expo">React Native Expo (Swift Widgets)</option>
+                <option value="flutter-riverpod">Flutter Riverpod (Clean Architecture)</option>
+                <option value="spring-boot-jvm">Spring Boot 3 (JPA Record DTO)</option>
+                <option value="design-system">Design System (Storybook)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-slate-300 block mb-1.5 font-medium">연결할 GitHub 원격 URL (선택 사항)</label>
+              <input type="text" id="new-proj-remote" placeholder="https://github.com/username/awesome-service.git" class="w-full px-3.5 py-2.5 bg-black/60 border border-white/10 rounded-xl text-white mono text-xs focus:outline-none focus:border-emerald-500/50">
+            </div>
+            <button type="submit" id="btn-create-submit" class="w-full h-10 mt-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-md inline-flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              <span>프로젝트 생성 및 Git 초기화</span>
+            </button>
+          </form>
+          <div id="create-result-box" class="hidden p-3 bg-black/80 rounded-xl border border-white/10 text-xs"></div>
         </div>
+
       </div>
     </section>
 
@@ -443,14 +395,14 @@
     <!-- ======================================================== -->
     <section id="tab-docs" class="tab-content hidden flex flex-col md:flex-row gap-3.5 h-[calc(100vh-105px)]">
       
-      <!-- Collapsible Sidebar (Toggleable on Mobile & Tablet) -->
+      <!-- Collapsible Sidebar (Toggleable via Hamburger Button) -->
       <div id="docs-sidebar" class="w-full md:w-80 lg:w-96 glass-panel p-3.5 rounded-2xl flex flex-col text-xs flex-shrink-0 transition-all duration-300">
         <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
           <div class="flex items-center gap-2 font-medium text-slate-200">
             <svg class="w-4 h-4 text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
             <span>문서 라이브러리</span>
           </div>
-          <button onclick="toggleDocsSidebar()" class="md:hidden px-2 py-0.5 rounded bg-white/5 text-slate-400 text-[10px]">
+          <button onclick="toggleDocsSidebar()" class="h-6 w-6 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs flex items-center justify-center transition">
             ✕
           </button>
         </div>
@@ -460,14 +412,19 @@
       <!-- Main Document Viewer Container (Expands to 100% when sidebar collapsed) -->
       <div class="flex-1 glass-panel p-4 rounded-2xl flex flex-col h-full text-xs min-w-0">
         <div class="flex justify-between items-center border-b border-white/10 pb-2 mb-2 gap-2">
-          <div class="flex items-center gap-2 truncate">
-            <button onclick="toggleDocsSidebar()" id="btn-docs-sidebar-toggle" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-medium flex items-center gap-1 border border-white/10 flex-shrink-0">
-              <span>목차 <span id="docs-sidebar-state-txt">접기</span></span>
+          <div class="flex items-center gap-2.5 truncate">
+            <!-- Sleek Hamburger Toggle Button -->
+            <button onclick="toggleDocsSidebar()" id="btn-docs-sidebar-toggle" title="목차 열기/닫기" class="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 flex items-center justify-center border border-white/10 flex-shrink-0 transition">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
             </button>
             <span id="doc-active-title" class="mono font-medium text-indigo-300 truncate text-xs">문서를 선택하세요</span>
           </div>
-          <button onclick="copyDocContent()" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 mono text-[10px] border border-white/10 transition flex items-center gap-1 flex-shrink-0">
-            <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <button onclick="copyDocContent()" class="h-8 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 mono text-[11px] border border-white/10 transition inline-flex items-center gap-1.5 flex-shrink-0">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             <span>복사</span>
           </button>
         </div>
@@ -596,7 +553,7 @@
         btn.classList.add('bg-white/10', 'text-white', 'border-white/10', 'shadow-sm');
       }
 
-      if (id === 'projects') { loadProjects(); loadGitActivity(); }
+      if (id === 'projects') loadProjects();
       if (id === 'quota') loadQuota();
       if (id === 'skills') loadSkills();
       if (id === 'subagents') loadSubagents();
@@ -604,7 +561,7 @@
       if (id === 'ports') loadPorts();
     }
 
-    // Projects & Multi-repo Activity
+    // Projects (Active Projects Only, Clean View)
     async function loadProjects() {
       try {
         const res = await fetch('/api/projects');
@@ -614,56 +571,29 @@
       } catch (e) { console.error(e); }
     }
 
-    function setProjectFilter(mode) {
-      currentFilter = mode;
-      document.querySelectorAll('.filter-pill').forEach(p => {
-        p.classList.remove('bg-white/10', 'text-white', 'border-white/15', 'shadow-sm');
-        p.classList.add('text-slate-400', 'border-transparent');
-      });
-      const active = document.getElementById(`filter-pill-${mode}`);
-      if (active) {
-        active.classList.remove('text-slate-400', 'border-transparent');
-        active.classList.add('bg-white/10', 'text-white', 'border-white/15', 'shadow-sm');
-      }
-      renderFilteredProjects();
-    }
-
     function renderFilteredProjects() {
-      const q = (document.getElementById('project-search-input')?.value || '').toLowerCase();
-      const famFilter = document.getElementById('family-filter-select')?.value || 'all';
-
-      const recentActive = allProjects.filter(p => !p.is_archived && p.is_active_recently);
-      const archived = allProjects.filter(p => p.is_archived);
-
-      document.getElementById('badge-active-count').innerText = recentActive.length;
-      document.getElementById('badge-all-count').innerText = allProjects.length;
-      document.getElementById('badge-archived-count').innerText = archived.length;
-
-      let list = allProjects;
-      if (currentFilter === 'active') list = recentActive;
-      if (currentFilter === 'archived') list = archived;
-
-      if (famFilter !== 'all') {
-        list = list.filter(p => p.family.toLowerCase() === famFilter.toLowerCase());
-      }
-
-      if (q) {
-        list = list.filter(p => p.name.toLowerCase().includes(q) || 
-                                p.stack.some(s => s.toLowerCase().includes(q)) || 
-                                (p.git.branch && p.git.branch.toLowerCase().includes(q)));
-      }
+      // Show active, non-archived projects directly
+      const list = allProjects.filter(p => !p.is_archived);
+      const badge = document.getElementById('active-projects-badge');
+      if (badge) badge.innerText = `${list.length}개 활성`;
 
       const container = document.getElementById('projects-grid');
+      if (!container) return;
+      if (!list.length) {
+        container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-500 text-xs glass-card rounded-2xl">현재 활성화된 프로젝트가 없습니다.</div>`;
+        return;
+      }
+
       container.innerHTML = list.map(p => {
         const isRecent = p.git.recent_commits_30d > 0;
         const branchBadge = p.git.branch ? `
-          <span class="text-slate-400 font-mono text-[10px] flex items-center gap-1">
+          <span class="text-slate-400 font-mono text-[10px] flex items-center gap-1 truncate">
             <svg class="w-3 h-3 text-slate-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
-            <span>${p.git.branch}</span>
-          </span>` : '';
+            <span class="truncate">${p.git.branch}</span>
+          </span>` : '<span class="text-slate-600 text-[10px]">Git 없음</span>';
 
         return `
-          <div class="glass-card p-4 rounded-2xl flex flex-col justify-between hover:border-white/20 transition group space-y-3">
+          <div class="glass-card p-4 rounded-2xl flex flex-col justify-between hover:border-white/20 transition space-y-3">
             <div class="space-y-2.5">
               <div class="flex justify-between items-start gap-2">
                 <div class="min-w-0 flex-1">
@@ -680,7 +610,7 @@
                       ${p.git.recent_commits_30d} 커밋
                     </span>
                   ` : `
-                    <span class="text-[10px] text-slate-500">${p.git.last_commit_relative}</span>
+                    <span class="text-[10px] text-slate-500">${p.git.last_commit_relative || '기록 없음'}</span>
                   `}
                 </div>
               </div>
@@ -692,7 +622,7 @@
 
               <!-- Meta Info Line -->
               <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/5">
-                ${branchBadge || '<span class="text-slate-600 text-[10px]">Git 없음</span>'}
+                ${branchBadge}
                 <span class="text-slate-500 mono text-[10px]">${p.git.total_commits ? p.git.total_commits + ' commits' : ''}</span>
               </div>
               ${p.git.last_commit_msg ? `
@@ -709,16 +639,13 @@
               ` : ''}
             </div>
 
-            <!-- Footer: 1-Click VS Code Open, Archive, Path -->
+            <!-- Footer: Matched Height h-8 Buttons -->
             <div class="pt-2.5 border-t border-white/[0.06] flex justify-between items-center text-xs gap-2">
-              <span class="text-[10px] text-slate-500 mono truncate max-w-[120px] sm:max-w-[140px]" title="${p.path}">dev/${p.name}</span>
+              <span class="text-[10px] text-slate-500 mono truncate max-w-[130px] sm:max-w-[150px]" title="${p.path}">dev/${p.name}</span>
               <div class="flex items-center gap-1.5 flex-shrink-0">
-                <button onclick="openProject('${p.path}', 'code')" title="VS Code에서 프로젝트 열기" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-medium text-slate-200 border border-white/10 transition flex items-center gap-1">
-                  <svg class="w-3 h-3 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                <button onclick="openProject('${p.path}', 'code')" title="VS Code에서 프로젝트 열기" class="h-8 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-200 border border-white/10 transition inline-flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                   <span>VS Code</span>
-                </button>
-                <button onclick="toggleArchive('${p.name}', ${!p.is_archived})" title="${p.is_archived ? '보관 해제' : '보관하기'}" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] text-slate-400 hover:text-slate-200 border border-white/10 transition">
-                  ${p.is_archived ? '✨' : '📦'}
                 </button>
               </div>
             </div>
@@ -755,17 +682,7 @@
       loadProjects();
     }
 
-    async function injectHarness(path, category) {
-      if (!confirm(`'${path}'에 하네스(${category})를 적용하시겠습니까?`)) return;
-      await fetch('/api/projects/init-harness', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path, template: category })
-      });
-      loadProjects();
-    }
-
-    // Unified 3-Provider Quota Meters
+    // Unified 3-Provider Quota Meters (Ultra Minimal & Exact)
     async function loadQuota() {
       try {
         const res = await fetch('/api/tokens');
@@ -774,55 +691,13 @@
       } catch (e) { console.error(e); }
     }
 
-    // Git Contribution Grass (잔디)
-    async function loadGitActivity() {
-      try {
-        const res = await fetch('/api/git/activity');
-        const data = await res.json();
-        const badge = document.getElementById('git-total-commits-badge');
-        if (badge) {
-          badge.innerText = `총 ${data.total_commits} 커밋 (활동일 ${data.active_days}일)`;
-        }
-
-        const grid = document.getElementById('git-grass-grid');
-        if (!grid || !data.calendar) return;
-
-        // Group into 7-day columns (weeks)
-        const weeks = [];
-        let currentWeek = [];
-        data.calendar.forEach(d => {
-          currentWeek.push(d);
-          if (currentWeek.length === 7) {
-            weeks.push(currentWeek);
-            currentWeek = [];
-          }
-        });
-        if (currentWeek.length > 0) weeks.push(currentWeek);
-
-        const levelColors = [
-          'bg-slate-900 border border-white/5',
-          'bg-emerald-950 border border-emerald-800/40',
-          'bg-emerald-700',
-          'bg-emerald-500',
-          'bg-emerald-400'
-        ];
-
-        grid.innerHTML = weeks.map(w => `
-          <div class="flex flex-col gap-1">
-            ${w.map(day => `
-              <div class="w-3 h-3 rounded-sm ${levelColors[day.level]} cursor-pointer transition hover:scale-125" title="${day.date}: ${day.count}개 커밋"></div>
-            `).join('')}
-          </div>
-        `).join('');
-      } catch (e) { console.error(e); }
-    }
-
     function renderQuotaCards(d) {
       const container = document.getElementById('quota-cards-container');
+      if (!container) return;
       const models = [
-        { key: 'claude', color: 'amber', border: 'border-amber-500/20', fill: 'text-amber-400', bar: 'bg-amber-400', obj: d.claude },
-        { key: 'gemini', color: 'blue', border: 'border-blue-500/20', fill: 'text-blue-400', bar: 'bg-blue-400', obj: d.gemini },
-        { key: 'gpt', color: 'emerald', border: 'border-emerald-500/20', fill: 'text-emerald-400', bar: 'bg-emerald-400', obj: d.gpt }
+        { key: 'claude', color: 'amber', border: 'border-amber-500/20', fill: 'text-amber-400', bar: 'bg-amber-400', obj: d.claude, env: 'Claude Code CLI' },
+        { key: 'gemini', color: 'blue', border: 'border-blue-500/20', fill: 'text-blue-400', bar: 'bg-blue-400', obj: d.gemini, env: 'Antigravity' },
+        { key: 'gpt', color: 'emerald', border: 'border-emerald-500/20', fill: 'text-emerald-400', bar: 'bg-emerald-400', obj: d.gpt, env: 'Codex / ChatGPT' }
       ];
 
       container.innerHTML = models.map(m => {
@@ -834,13 +709,13 @@
               ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">주의</span>'
               : '<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">정상</span>');
 
-        const resetTxt = m.obj.resets_in_minutes > 0 ? `~${m.obj.resets_in_minutes}분 후` : '즉시 가용';
-        const resetColor = isExceeded ? 'text-rose-300' : (isWarning ? 'text-amber-300' : 'text-slate-200');
+        const resetTxt = m.obj.resets_in_minutes > 0 ? `~${m.obj.resets_in_minutes}분 후 리셋` : '즉시 가용';
+        const resetColor = isExceeded ? 'text-rose-300' : (isWarning ? 'text-amber-300' : 'text-slate-300');
 
         return `
         <div class="glass-card p-5 rounded-2xl ${m.border} flex flex-col justify-between hover:border-white/20 transition space-y-4">
           <div class="space-y-3.5">
-            <!-- Header: Model Info + Status Badge -->
+            <!-- Header: Model Info + Status Badge (No distracting extra badges) -->
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-2.5 min-w-0">
                 <span class="w-2.5 h-2.5 rounded-full ${m.bar} shadow-sm shadow-${m.color}-500/50 flex-shrink-0"></span>
@@ -850,12 +725,11 @@
                 </div>
               </div>
               <div class="flex items-center gap-1.5 flex-shrink-0">
-                ${m.key === 'gpt' ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Official API</span>' : ''}
                 ${statusBadge}
               </div>
             </div>
 
-            <!-- Main Metric Section -->
+            <!-- Main Metric Section: Clean & Bold -->
             <div class="bg-black/30 rounded-xl p-4 border border-white/5 space-y-3">
               <div class="flex items-center justify-between">
                 <div>
@@ -889,16 +763,16 @@
             </div>
           </div>
 
-          <div class="pt-2.5 border-t border-white/5 flex justify-between items-center text-[10px] text-slate-500">
-            <span>5시간 내 ${m.obj.last_5h.calls || 0}회 호출</span>
-            <span class="mono text-slate-400">${m.key === 'gpt' ? 'ChatGPT Wham API' : (m.key === 'claude' ? 'Claude Code CLI' : 'Antigravity')}</span>
+          <div class="pt-2 border-t border-white/5 flex justify-between items-center text-[10px] text-slate-500">
+            <span class="mono text-slate-400">${m.env}</span>
+            <span>최신 동기화 완료</span>
           </div>
         </div>
         `;
       }).join('');
     }
 
-    // Skills Catalog
+    // Skills Catalog (Single-Column List View)
     async function loadSkills() {
       try {
         const res = await fetch('/api/skills/catalog');
@@ -910,35 +784,36 @@
 
     function renderSkills(list) {
       const container = document.getElementById('skills-grid');
+      if (!container) return;
+      if (!list.length) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs glass-card rounded-2xl">해당 카테고리의 스킬이 없습니다.</div>`;
+        return;
+      }
       container.innerHTML = list.map(s => `
-        <div class="glass-card p-4 rounded-2xl flex flex-col justify-between space-y-3 hover:border-white/20 transition">
-          <div>
-            <div class="flex justify-between items-start mb-1">
-              <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-medium">${s.category}</span>
+        <div class="glass-card p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-white/20 transition group">
+          <div class="space-y-1.5 flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[10px] px-2 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-300 font-medium border border-indigo-500/30">${s.category}</span>
+              <h3 class="font-bold text-sm text-white truncate">${s.name}</h3>
               <div class="text-amber-400 text-xs font-bold flex items-center gap-1">
                 <span>★ ${s.rating}</span>
                 <span class="text-slate-500 text-[10px]">(${s.reviews_count})</span>
               </div>
             </div>
-            <h3 class="font-bold text-sm text-white">${s.name}</h3>
-            
-            <div class="mt-2 space-y-1.5 text-xs">
-              <div class="p-2 rounded bg-emerald-950/30 border border-emerald-500/20 text-emerald-300 text-[11px]">
-                <strong>👍 장점:</strong> ${s.pros}
-              </div>
-              <div class="p-2 rounded bg-rose-950/20 border border-rose-500/20 text-rose-300 text-[11px]">
-                <strong>⚠️ 주의:</strong> ${s.cons}
-              </div>
-              <p class="text-slate-400 text-[11px] italic pt-1">"${s.verdict}"</p>
+            <div class="text-xs text-slate-300 flex flex-col sm:flex-row sm:items-center gap-2 pt-0.5">
+              <span class="text-emerald-400/90 text-[11px]"><strong class="text-emerald-400">👍 장점:</strong> ${s.pros}</span>
+              <span class="hidden sm:inline text-slate-600">·</span>
+              <span class="text-slate-400 italic text-[11px]">"${s.verdict}"</span>
             </div>
           </div>
 
-          <div class="pt-3 border-t border-white/[0.06] flex items-center justify-between">
-            <div class="flex flex-wrap gap-1 text-[9px] text-slate-400">
-              ${s.compatible.map(c => `<span class="px-1.5 py-0.5 rounded bg-slate-800">${c}</span>`).join('')}
+          <div class="flex items-center justify-between md:justify-end gap-2.5 flex-shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
+            <div class="flex items-center gap-1 text-[9px] text-slate-400">
+              ${s.compatible.map(c => `<span class="px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-white/5">${c}</span>`).join('')}
             </div>
-            <button onclick="trySkill('${s.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] shadow">
-              설치/체험
+            <button onclick="trySkill('${s.id}')" class="h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow inline-flex items-center gap-1.5 transition flex-shrink-0">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              <span>설치 복사</span>
             </button>
           </div>
         </div>
@@ -1150,78 +1025,104 @@
 
 
 
-    // Docs Sidebar Toggle
+    // Docs Sidebar Toggle (Hamburger Button)
     let docsSidebarVisible = true;
     function toggleDocsSidebar() {
       const sb = document.getElementById('docs-sidebar');
-      const txt = document.getElementById('docs-sidebar-state-txt');
+      if (!sb) return;
       docsSidebarVisible = !docsSidebarVisible;
       if (docsSidebarVisible) {
         sb.classList.remove('hidden');
-        if (txt) txt.innerText = '접기';
       } else {
         sb.classList.add('hidden');
-        if (txt) txt.innerText = '열기';
       }
     }
 
-    // Active Ports & Processes
+    // Active Ports & Processes (Single-Column List with Progressive Disclosure)
     async function loadPorts() {
       try {
         const res = await fetch('/api/ports');
         const data = await res.json();
         const ports = data.ports || [];
-        document.getElementById('active-ports-count-badge').innerText = `${ports.length} Ports Active`;
+        const badge = document.getElementById('active-ports-count-badge');
+        if (badge) badge.innerText = `${ports.length} Ports Active`;
         renderPorts(ports);
       } catch (e) { console.error(e); }
     }
 
     function renderPorts(list) {
       const container = document.getElementById('ports-grid');
+      if (!container) return;
       if (!list.length) {
-        container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-500 text-xs glass-card rounded-2xl">현재 실행 중인 포트가 없습니다.</div>`;
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs glass-card rounded-2xl">현재 실행 중인 개발 포트가 없습니다.</div>`;
         return;
       }
       container.innerHTML = list.map(p => {
         const isDev = p.is_dev;
         const isSelf = p.port === 8765;
         const borderClass = isSelf ? 'border-indigo-500/30 bg-indigo-950/20' : (isDev ? 'border-emerald-500/30' : 'border-white/5');
-        const statusBadge = isSelf ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">Agent Hub</span>' : (isDev ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">내 프로젝트</span>' : '<span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-800 text-slate-400">시스템</span>');
+        const statusBadge = isSelf 
+          ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">Agent Hub</span>' 
+          : (isDev 
+              ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">내 프로젝트</span>' 
+              : '<span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-800 text-slate-400">시스템</span>');
 
         return `
-          <div class="glass-card p-4 rounded-2xl space-y-3 ${borderClass} flex flex-col justify-between hover:border-white/20 transition">
-            <div class="space-y-2.5">
-              <div class="flex justify-between items-start gap-2">
-                <div class="space-y-0.5">
+          <div class="glass-card p-3.5 sm:p-4 rounded-2xl ${borderClass} transition space-y-2.5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <!-- Left: Port, Name, PID, Status -->
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="px-2.5 py-1 rounded-xl bg-black/70 border border-white/10 text-white font-mono font-bold text-xs flex-shrink-0 shadow-inner">PORT :${p.port}</span>
+                <div class="min-w-0">
                   <div class="flex items-center gap-2">
-                    <span class="px-2 py-0.5 rounded-lg bg-black/60 border border-white/10 text-white font-mono font-bold text-xs">PORT :${p.port}</span>
-                    <h4 class="font-semibold text-sm text-white">${p.project_name}</h4>
+                    <h4 class="font-bold text-sm text-white truncate">${p.project_name}</h4>
+                    ${statusBadge}
                   </div>
-                  <div class="text-[10px] text-slate-400 mono">PID: ${p.pid} · 명령: ${p.command}</div>
+                  <div class="text-[11px] text-slate-400 mono truncate">PID: ${p.pid} · ${p.command}</div>
                 </div>
-                ${statusBadge}
               </div>
 
-              <div class="bg-black/50 p-2.5 rounded-xl space-y-1.5 text-[11px] mono select-all border border-white/5">
-                <div class="text-slate-300 break-all leading-tight"><span class="text-slate-500">CMD:</span> ${p.cmdline}</div>
-                <div class="text-emerald-400/90 break-all text-[10px] pt-1 border-t border-white/5 leading-tight"><span class="text-slate-500">DIR:</span> ${p.cwd}</div>
+              <!-- Right: Matched Height h-8 Action Buttons -->
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <a href="http://localhost:${p.port}" target="_blank" class="h-8 px-3 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-medium inline-flex items-center gap-1.5 transition">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  <span>열기</span>
+                </a>
+                ${isSelf ? `<span class="text-[10px] text-slate-500 px-2">현재 서버</span>` : `
+                  <button onclick="killPortProcess(${p.port}, ${p.pid})" class="h-8 px-3 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/20 text-xs font-medium inline-flex items-center gap-1 transition">
+                    <span>종료</span>
+                  </button>
+                `}
+                <button onclick="togglePortDetail(${p.port})" id="btn-port-toggle-${p.port}" title="상세 경로 및 실행 명령어 토글" class="h-8 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/10 text-xs inline-flex items-center gap-1 transition">
+                  <span id="port-arrow-${p.port}" class="transition-transform duration-200 text-[10px]">▼</span>
+                </button>
               </div>
             </div>
 
-            <div class="pt-2.5 border-t border-white/10 flex justify-between items-center text-xs">
-              <a href="http://localhost:${p.port}" target="_blank" class="text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium text-xs">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                <span>브라우저 열기</span>
-              </a>
-              ${isSelf ? `<span class="text-[10px] text-slate-500">현재 제어 서버</span>` : `
-                <button onclick="killPortProcess(${p.port}, ${p.pid})" class="px-2.5 py-1 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/20 text-xs font-medium transition flex items-center gap-1">
-                  <span>종료</span>
-                </button>
-              `}
+            <!-- Accordion Drawer (Hidden by default, reveals CMD & DIR) -->
+            <div id="port-detail-${p.port}" class="hidden pt-2.5 border-t border-white/5 space-y-1.5 text-[11px] mono select-all">
+              <div class="bg-black/60 p-2.5 rounded-xl border border-white/5 space-y-1">
+                <div class="text-slate-300 break-all leading-relaxed"><span class="text-slate-500 font-semibold">CMD:</span> ${p.cmdline}</div>
+                <div class="text-emerald-400/90 break-all text-[10px] pt-1 border-t border-white/5 leading-relaxed"><span class="text-slate-500 font-semibold">DIR:</span> ${p.cwd}</div>
+              </div>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    function togglePortDetail(port) {
+      const detail = document.getElementById(`port-detail-${port}`);
+      const arrow = document.getElementById(`port-arrow-${port}`);
+      if (!detail) return;
+      const isHidden = detail.classList.contains('hidden');
+      if (isHidden) {
+        detail.classList.remove('hidden');
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
+      } else {
+        detail.classList.add('hidden');
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+      }
     }
 
     async function killPortProcess(port, pid) {
@@ -1287,7 +1188,6 @@
 
     // Boot & Periodic Live Quota Refresh
     loadProjects();
-    loadGitActivity();
     loadQuota();
     setInterval(loadQuota, 30000); // 30s live poll
   </script>

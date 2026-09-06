@@ -470,13 +470,46 @@ def parse_token_metrics():
 
     c = stats["claude"]
     c["cost"] = (c["input"] * 3.0 + c["output"] * 15.0 + c["cache_read"] * 0.30 + c["cache_write"] * 3.75) / 1_000_000
-    c["last_5h"]["pct_pro"] = min(100.0, round((c["last_5h"]["tokens"] / 500_000) * 100, 1))
-    c["last_5h"]["pct_team"] = min(100.0, round((c["last_5h"]["tokens"] / 1_500_000) * 100, 1))
-    c["last_7d"]["pct_pro"] = min(100.0, round((c["last_7d"]["tokens"] / 10_000_000) * 100, 1))
-    c["last_7d"]["pct_team"] = min(100.0, round((c["last_7d"]["tokens"] / 30_000_000) * 100, 1))
-    if earliest_c_5h:
-        c["resets_in_minutes"] = max(0, int((earliest_c_5h + timedelta(hours=5) - now).total_seconds() / 60))
-    c["status"] = "한도 도달" if c["last_5h"]["pct_pro"] >= 100 else ("주의" if c["last_5h"]["pct_pro"] >= 75 else "정상")
+
+    # Check ~/.claude.json authoritative utilization first
+    claude_authoritative = False
+    claude_json_path = os.path.expanduser("~/.claude.json")
+    if os.path.exists(claude_json_path):
+        try:
+            with open(claude_json_path, "r", encoding="utf-8") as f:
+                cj = json.load(f)
+            util = cj.get("cachedUsageUtilization", {}).get("utilization", {})
+            five_h = util.get("five_hour")
+            seven_d = util.get("seven_day")
+            if five_h and isinstance(five_h, dict):
+                pct_5h = five_h.get("utilization", 0)
+                resets_at_str = five_h.get("resets_at")
+                resets_min = 0
+                if resets_at_str:
+                    try:
+                        r_dt = datetime.fromisoformat(resets_at_str.replace("Z", "+00:00"))
+                        if r_dt > now:
+                            resets_min = max(0, int((r_dt - now).total_seconds() / 60))
+                        else:
+                            pct_5h = 0
+                            resets_min = 0
+                    except Exception:
+                        pass
+                pct_7d = seven_d.get("utilization", 0) if (seven_d and isinstance(seven_d, dict)) else 0
+                c["last_5h"]["pct_pro"] = float(pct_5h)
+                c["last_7d"]["pct_pro"] = float(pct_7d)
+                c["resets_in_minutes"] = resets_min
+                c["status"] = "한도 도달" if pct_5h >= 100 else ("주의" if pct_5h >= 75 else "정상")
+                claude_authoritative = True
+        except Exception:
+            pass
+
+    if not claude_authoritative:
+        c["last_5h"]["pct_pro"] = min(100.0, round((c["last_5h"]["tokens"] / 500_000) * 100, 1))
+        c["last_7d"]["pct_pro"] = min(100.0, round((c["last_7d"]["tokens"] / 10_000_000) * 100, 1))
+        if earliest_c_5h:
+            c["resets_in_minutes"] = max(0, int((earliest_c_5h + timedelta(hours=5) - now).total_seconds() / 60))
+        c["status"] = "한도 도달" if c["last_5h"]["pct_pro"] >= 100 else ("주의" if c["last_5h"]["pct_pro"] >= 75 else "정상")
 
     # 2. Gemini: Parse Antigravity conversation sessions (~/.gemini/antigravity/conversations/*.db)
     gem_dir = os.path.expanduser("~/.gemini/antigravity/conversations")
@@ -1260,6 +1293,16 @@ python3 tools/harness-cli.py install-skill {skill_id}
                 return
 
             applied_template = template
+            if template == "none":
+                self.json_response({
+                    "success": True,
+                    "name": custom_name,
+                    "path": safe_target,
+                    "template": "none",
+                    "message": f"GitHub 저장소를 하네스 없이 원본 그대로 복제했습니다: '{custom_name}'"
+                })
+                return
+
             if template == "auto":
                 files = set(os.listdir(safe_target))
                 if "pubspec.yaml" in files:
