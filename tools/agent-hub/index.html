@@ -27,6 +27,15 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+    /* Mobile UX Enhancements */
+    @media (max-width: 640px) {
+      .tab-btn { padding: 0.45rem 0.65rem; min-height: 34px; }
+      input, select, textarea, button { font-size: 14px !important; } /* prevent iOS Safari zoom */
+      #floating-hud-widget { bottom: 12px; right: 12px; }
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
     
     /* Markdown Styles */
     .markdown-body { color: #cbd5e1; font-size: 0.825rem; line-height: 1.65; }
@@ -67,28 +76,28 @@
         </div>
       </div>
 
-      <!-- Segmented Navigation (Fits Any Screen, Zero Horizontal Scroll) -->
-      <nav class="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-white/[0.08] flex-shrink-0">
-        <button onclick="switchTab('projects')" id="tab-btn-projects" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1">
-          <span>📁</span> <span class="hidden md:inline">프로젝트</span>
+      <!-- Responsive Segmented Navigation Bar -->
+      <nav class="flex items-center gap-1 bg-slate-950/90 p-1 rounded-xl border border-white/[0.08] overflow-x-auto max-w-[calc(100vw-120px)] sm:max-w-none no-scrollbar">
+        <button onclick="switchTab('projects')" id="tab-btn-projects" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+          <span>📁</span> <span class="text-[11px] sm:text-xs">프로젝트</span>
         </button>
-        <button onclick="switchTab('quota')" id="tab-btn-quota" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
-          <span>⏳</span> <span class="hidden md:inline">3대 AI 쿼터</span>
+        <button onclick="switchTab('quota')" id="tab-btn-quota" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+          <span>⏳</span> <span class="text-[11px] sm:text-xs">AI 쿼터</span>
         </button>
-        <button onclick="switchTab('skills')" id="tab-btn-skills" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
-          <span>⭐</span> <span class="hidden md:inline">스킬 마켓</span>
+        <button onclick="switchTab('ports')" id="tab-btn-ports" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+          <span>🔌</span> <span class="text-[11px] sm:text-xs">포트</span>
         </button>
-        <button onclick="switchTab('subagents')" id="tab-btn-subagents" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
-          <span>🤖</span> <span class="hidden md:inline">서브에이전트</span>
+        <button onclick="switchTab('skills')" id="tab-btn-skills" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+          <span>⭐</span> <span class="text-[11px] sm:text-xs">스킬 마켓</span>
         </button>
-        <button onclick="switchTab('ports')" id="tab-btn-ports" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
-          <span>🔌</span> <span class="hidden md:inline">포트 / 프로세스</span>
+        <button onclick="switchTab('subagents')" id="tab-btn-subagents" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+          <span>🤖</span> <span class="text-[11px] sm:text-xs">에이전트</span>
         </button>
-        <button onclick="switchTab('github')" id="tab-btn-github" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
-          <span>🐙</span> <span class="hidden md:inline">GitHub 연동</span>
+        <button onclick="switchTab('github')" id="tab-btn-github" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+          <span>🐙</span> <span class="text-[11px] sm:text-xs">Git 복제</span>
         </button>
-        <button onclick="switchTab('docs')" id="tab-btn-docs" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
-          <span>📖</span> <span class="hidden md:inline">문서</span>
+        <button onclick="switchTab('docs')" id="tab-btn-docs" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+          <span>📖</span> <span class="text-[11px] sm:text-xs">문서</span>
         </button>
       </nav>
 
@@ -111,35 +120,37 @@
     <!-- TAB 1: PROJECTS & WORKSPACE ACTIVITY                     -->
     <!-- ======================================================== -->
     <section id="tab-projects" class="tab-content space-y-4">
-      <div class="glass-panel p-3 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
-        <!-- Filter & Family Pills -->
-        <div class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
-          <button onclick="setProjectFilter('active')" id="filter-pill-active" class="filter-pill px-3 py-1 rounded-xl text-xs font-bold bg-indigo-600 text-white transition flex items-center gap-1.5">
-            <span>🔥 최근 활동 (30일 내)</span>
-            <span id="badge-active-count" class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px]">0</span>
-          </button>
-          <button onclick="setProjectFilter('all')" id="filter-pill-all" class="filter-pill px-3 py-1 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900/60 border border-white/[0.06] transition flex items-center gap-1.5">
-            <span>전체 프로젝트</span>
-            <span id="badge-all-count" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">0</span>
-          </button>
-          <button onclick="setProjectFilter('archived')" id="filter-pill-archived" class="filter-pill px-3 py-1 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900/60 border border-white/[0.06] transition flex items-center gap-1.5">
-            <span>📦 보관/숨김</span>
-            <span id="badge-archived-count" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">0</span>
-          </button>
+      <div class="glass-panel p-3 sm:p-4 rounded-2xl flex flex-col gap-2.5">
+        <!-- Filter Pills with Smooth Mobile Scroll -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar w-full">
+            <button onclick="setProjectFilter('active')" id="filter-pill-active" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+              <span>🔥 최근 활동</span>
+              <span id="badge-active-count" class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px]">0</span>
+            </button>
+            <button onclick="setProjectFilter('all')" id="filter-pill-all" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900/60 border border-white/[0.06] transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+              <span>전체</span>
+              <span id="badge-all-count" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">0</span>
+            </button>
+            <button onclick="setProjectFilter('archived')" id="filter-pill-archived" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900/60 border border-white/[0.06] transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+              <span>📦 보관</span>
+              <span id="badge-archived-count" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">0</span>
+            </button>
+          </div>
+          <button onclick="loadProjects()" title="새로고침" class="p-2 text-xs font-medium rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/[0.08] transition flex-shrink-0">🔄</button>
         </div>
 
-        <!-- Search & Quick Family Filter -->
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-          <select id="family-filter-select" onchange="renderFilteredProjects()" class="px-2.5 py-1 text-xs bg-slate-950/80 border border-white/[0.08] rounded-xl text-slate-300 focus:outline-none">
-            <option value="all">모든 패밀리 (Multi-repo)</option>
+        <!-- Search & Family Selector -->
+        <div class="flex flex-col sm:flex-row items-center gap-2 w-full pt-1 border-t border-white/5">
+          <select id="family-filter-select" onchange="renderFilteredProjects()" class="w-full sm:w-52 px-3 py-1.5 text-xs bg-slate-950/80 border border-white/[0.08] rounded-xl text-slate-300 focus:outline-none">
+            <option value="all">전체 프로젝트 그룹</option>
             <option value="teumteum">teumteum (앱·어드민·배포)</option>
             <option value="1D1S">1D1S (클라이언트·어드민·DS)</option>
             <option value="hivcd">hivcd (프론트·백엔드·DS)</option>
             <option value="please-2000won">please-2000won (풀스택)</option>
             <option value="CampusYA">CampusYA</option>
           </select>
-          <input type="text" id="project-search-input" oninput="renderFilteredProjects()" placeholder="검색 (이름, 스택, 브랜치)..." class="w-full sm:w-48 px-3 py-1 text-xs bg-slate-950/80 border border-white/[0.08] rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
-          <button onclick="loadProjects()" title="새로고침" class="px-2.5 py-1 text-xs font-medium rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/[0.08] transition">🔄</button>
+          <input type="text" id="project-search-input" oninput="renderFilteredProjects()" placeholder="검색 (이름, 스택, 브랜치)..." class="w-full flex-1 px-3 py-1.5 text-xs bg-slate-950/80 border border-white/[0.08] rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
         </div>
       </div>
 

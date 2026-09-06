@@ -1,17 +1,24 @@
 #!/bin/bash
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../../.." >/dev/null 2>&1 && pwd )"
+BIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+APP_DIR="$( cd "${BIN_DIR}/../.." >/dev/null 2>&1 && pwd )"
+TOOLS_DIR="$( cd "${APP_DIR}/.." >/dev/null 2>&1 && pwd )"
+REPO_DIR="$( cd "${TOOLS_DIR}/.." >/dev/null 2>&1 && pwd )"
 PORT=8765
 
 # 1. Start Server in background if not already running
 if ! lsof -i :${PORT} > /dev/null 2>&1; then
-    python3 "${DIR}/tools/agent-hub/server.py" > /tmp/agent-hub-server.log 2>&1 &
-    sleep 0.4
+    python3 "${TOOLS_DIR}/agent-hub/server.py" > /tmp/agent-hub-server.log 2>&1 &
+    sleep 0.5
 fi
 
 # 2. Start Menu Bar Token Monitor if not already running
 if ! pgrep -f "agent-hub-menubar" > /dev/null 2>&1; then
-    "${DIR}/tools/status-bar/agent-hub-menubar" > /dev/null 2>&1 &
+    "${TOOLS_DIR}/status-bar/agent-hub-menubar" > /dev/null 2>&1 &
 fi
 
-# 3. Launch Standalone Native macOS WebKit Window (No Chrome required!)
-exec "${DIR}/tools/desktop-app/AgentHubApp"
+# 3. Launch Standalone Native macOS WebKit Window
+if [ -f "${BIN_DIR}/AgentHubApp" ]; then
+    exec "${BIN_DIR}/AgentHubApp"
+else
+    exec "${TOOLS_DIR}/desktop-app/AgentHubApp"
+fi
