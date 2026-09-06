@@ -32,60 +32,34 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, "projects-config.json")
 SKILLS_FILE = os.path.join(CONFIG_DIR, "custom-skills.json")
 WEB_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Structured subagent hierarchical DAG registry
-SUBAGENTS_REGISTRY = [
+SUBAGENTS_FILE = os.path.join(CONFIG_DIR, "subagents.json")
+
+DEFAULT_SUBAGENTS = [
     {
         "id": "subagent-100",
         "parent_id": None,
         "role": "Master Orchestrator",
         "project": "agent-guideline",
-        "state": "ACTIVE",
+        "state": "IDLE",
         "prompt": "시스템 아키텍처 감독 및 하위 에이전트 작업 파이프라인 관리",
         "tokens": 64200,
         "dispatched_at": "2026-09-06T14:00:00Z"
-    },
-    {
-        "id": "subagent-101",
-        "parent_id": "subagent-100",
-        "role": "QA Guardian",
-        "project": "CampusYA-FE",
-        "state": "IDLE",
-        "prompt": "flutter analyze 실행 및 0 issues 무결성 검증",
-        "tokens": 42100,
-        "dispatched_at": "2026-09-06T14:15:00Z"
-    },
-    {
-        "id": "subagent-102",
-        "parent_id": "subagent-100",
-        "role": "iOS Swift Widget Engineer",
-        "project": "teumteum-mobile",
-        "state": "RUNNING",
-        "prompt": "targets/home-widget 10pt 줄간격 및 App Group UserDefaults 동기화",
-        "tokens": 89400,
-        "dispatched_at": "2026-09-06T14:30:00Z"
-    },
-    {
-        "id": "subagent-103",
-        "parent_id": "subagent-100",
-        "role": "Growth Marketer",
-        "project": "1D1S-client",
-        "state": "IDLE",
-        "prompt": "AARRR 퍼널 진단 및 PAS 공식 적용 깃허브 잔디 광고 카피 작성",
-        "tokens": 28300,
-        "dispatched_at": "2026-09-06T14:32:00Z"
-    },
-    {
-        "id": "subagent-104",
-        "parent_id": "subagent-102",
-        "role": "Native Build Verifier",
-        "project": "teumteum-mobile",
-        "state": "RUNNING",
-        "prompt": "xcodebuild -workspace ios/teumteum.xcworkspace -scheme teumteum build",
-        "tokens": 17800,
-        "dispatched_at": "2026-09-06T14:45:00Z"
     }
 ]
 
+def load_subagents():
+    if os.path.exists(SUBAGENTS_FILE):
+        try:
+            with open(SUBAGENTS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return list(DEFAULT_SUBAGENTS)
+
+def save_subagents(subs):
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(SUBAGENTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(subs, f, ensure_ascii=False, indent=2)
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
@@ -805,14 +779,16 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
             self.json_response({"error": str(e)}, status=403)
 
     def handle_get_subagents(self):
-        self.json_response({"subagents": SUBAGENTS_REGISTRY})
+        subs = load_subagents()
+        self.json_response({"subagents": subs})
 
     def handle_dispatch_subagent(self, payload):
         role = payload.get("role", "Specialist").strip()
         project = payload.get("project", "General").strip()
         prompt = payload.get("prompt", "").strip()
         parent_id = payload.get("parent_id", "subagent-100")
-        new_id = f"subagent-{len(SUBAGENTS_REGISTRY) + 101}"
+        subs = load_subagents()
+        new_id = f"subagent-{len(subs) + 101}"
         entry = {
             "id": new_id,
             "parent_id": parent_id,
@@ -823,26 +799,41 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
             "tokens": 12000,
             "dispatched_at": datetime.now(timezone.utc).isoformat()
         }
-        SUBAGENTS_REGISTRY.append(entry)
+        subs.append(entry)
+        save_subagents(subs)
         self.json_response({"success": True, "subagent": entry})
 
     def handle_update_subagent_state(self, payload):
         sub_id = payload.get("id", "").strip()
         new_state = payload.get("state", "IDLE").strip()
+        subs = load_subagents()
         found = False
-        for s in SUBAGENTS_REGISTRY:
+        for s in subs:
             if s["id"] == sub_id:
                 s["state"] = new_state
                 found = True
+        if found:
+            save_subagents(subs)
         self.json_response({"success": found, "id": sub_id, "state": new_state})
 
     def handle_kill_subagent(self, payload):
         sub_id = payload.get("id", "").strip()
+        subs = load_subagents()
         found = False
-        for s in SUBAGENTS_REGISTRY:
-            if s["id"] == sub_id or sub_id == "all":
-                s["state"] = "KILLED"
-                found = True
+        if sub_id == "all":
+            for s in subs:
+                s["state"] = "IDLE" if s["parent_id"] is None else "KILLED"
+            # Remove all children completely to keep list clean
+            subs = [s for s in subs if s["parent_id"] is None]
+            found = True
+        else:
+            for s in subs:
+                if s["id"] == sub_id:
+                    s["state"] = "KILLED"
+                    found = True
+            # Filter out killed subagents permanently
+            subs = [s for s in subs if s["id"] != sub_id]
+        save_subagents(subs)
         self.json_response({"success": found, "id": sub_id})
 
     def handle_add_or_webhook_skill(self, payload):
