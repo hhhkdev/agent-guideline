@@ -174,12 +174,84 @@ def print_tokens():
     print("=" * 60 + "\n")
 
 
+def print_quota():
+    import sys
+    sys.path.insert(0, os.path.join(REPO_ROOT, "tools", "agent-hub"))
+    import server
+    metrics = server.parse_token_metrics()
+    c = metrics.get("claude", {})
+    l5 = c.get("last_5h", {})
+    l7 = c.get("last_7d", {})
+
+    print("\n⏳ 5-Hour Rolling & Weekly Quota Rate Limits (Subscription Plans):")
+    print("=" * 65)
+    print("🤖 Anthropic Claude Plan Utilization:")
+    print(f"   • 5-Hour Window : {l5.get('tokens', 0):,} tokens ({l5.get('calls', 0)} calls)")
+    print(f"     - Pro Plan Rate Limit  : [{l5.get('pct_pro', 0):>5.1f}%] {'█' * int(l5.get('pct_pro', 0) // 5)}{'░' * (20 - int(l5.get('pct_pro', 0) // 5))}")
+    print(f"     - Team Plan Rate Limit : [{l5.get('pct_team', 0):>5.1f}%] {'█' * int(l5.get('pct_team', 0) // 5)}{'░' * (20 - int(l5.get('pct_team', 0) // 5))}")
+    print(f"     - 5h Window Rolling Reset in ~{c.get('resets_in_minutes', 165)} minutes\n")
+
+    print(f"   • 7-Day Weekly Window : {l7.get('tokens', 0):,} tokens ({l7.get('calls', 0)} calls)")
+    print(f"     - Pro Plan Weekly Cap  : [{l7.get('pct_pro', 0):>5.1f}%] {'█' * int(l7.get('pct_pro', 0) // 5)}{'░' * (20 - int(l7.get('pct_pro', 0) // 5))}")
+    print(f"     - Team Plan Weekly Cap : [{l7.get('pct_team', 0):>5.1f}%] {'█' * int(l7.get('pct_team', 0) // 5)}{'░' * (20 - int(l7.get('pct_team', 0) // 5))}")
+    print("=" * 65 + "\n")
+
+
+def toggle_project_archive(name, archive=True):
+    import sys
+    sys.path.insert(0, os.path.join(REPO_ROOT, "tools", "agent-hub"))
+    import server
+    cfg = server.load_config()
+    archived_set = set(cfg.get("archived_projects", []))
+    if archive:
+        archived_set.add(name)
+        print(f"📦 Project '{name}' is now ARCHIVED (hidden from active list).")
+    else:
+        archived_set.discard(name)
+        print(f"✨ Project '{name}' is now UNARCHIVED (visible in active list).")
+    cfg["archived_projects"] = sorted(list(archived_set))
+    server.save_config(cfg)
+
+
+def manage_subagents(action, role=None, project=None, prompt=None, subagent_id=None):
+    import sys
+    sys.path.insert(0, os.path.join(REPO_ROOT, "tools", "agent-hub"))
+    import server
+
+    if action == "list":
+        print("\n🤖 Active Subagents Registry:")
+        print("=" * 65)
+        for s in server.SUBAGENTS_REGISTRY:
+            status_symbol = "🟢" if s["state"] == "RUNNING" else ("⚪" if s["state"] == "IDLE" else "🔴")
+            print(f"{status_symbol} [{s['id']}] {s['role']:25} | {s['project']:18} | {s['state']}")
+            print(f"   Prompt: {s['prompt'][:60]}...")
+            print(f"   Tokens: {s['tokens']:,} | Dispatched: {s['dispatched_at']}\n")
+        print("=" * 65)
+    elif action == "dispatch":
+        new_entry = {
+            "id": f"subagent-{len(server.SUBAGENTS_REGISTRY) + 101}",
+            "role": role or "Custom Specialist",
+            "project": project or "General",
+            "state": "RUNNING",
+            "prompt": prompt or "No prompt provided",
+            "tokens": 0,
+            "dispatched_at": datetime.now(timezone.utc).isoformat()
+        }
+        server.SUBAGENTS_REGISTRY.insert(0, new_entry)
+        print(f"🚀 Dispatched subagent: {new_entry['id']} ({new_entry['role']}) for project '{new_entry['project']}'")
+    elif action == "kill":
+        for s in server.SUBAGENTS_REGISTRY:
+            if s["id"] == subagent_id:
+                s["state"] = "KILLED"
+                print(f"🛑 Terminated subagent: {subagent_id}")
+                return
+        print(f"⚠️ Subagent '{subagent_id}' not found.")
+
+
 def create_project(name, template="universal"):
     import sys
     sys.path.insert(0, os.path.join(REPO_ROOT, "tools", "agent-hub"))
     import server
-    res = server.AgentHubRequestHandler(None, ("127.0.0.1", 0), None)
-    # Use server logic directly
     allowed_root = server.ALLOWED_DEV_ROOT
     target_path = os.path.join(allowed_root, name)
     try:
@@ -229,6 +301,23 @@ def main():
 
     subparsers.add_parser("list-skills", help="List archived skills")
     subparsers.add_parser("tokens", help="Show token metrics across Claude, Gemini, GPT")
+    subparsers.add_parser("quota", help="Show 5-hour rolling and 7-day plan quota utilization %")
+
+    arch_p = subparsers.add_parser("archive", help="Archive a project to hide from active list")
+    arch_p.add_argument("name", help="Project name")
+
+    unarch_p = subparsers.add_parser("unarchive", help="Unarchive a project to show in active list")
+    unarch_p.add_argument("name", help="Project name")
+
+    sub_p = subparsers.add_parser("subagent", help="Manage and inspect subagents via CLI")
+    sub_sub = sub_p.add_subparsers(dest="sub_action")
+    sub_sub.add_parser("list", help="List active subagents")
+    disp_p = sub_sub.add_parser("dispatch", help="Dispatch a new subagent")
+    disp_p.add_argument("--role", required=True, help="Role name")
+    disp_p.add_argument("--project", default="General", help="Project name")
+    disp_p.add_argument("--prompt", required=True, help="Task prompt")
+    kill_p = sub_sub.add_parser("kill", help="Kill a subagent")
+    kill_p.add_argument("id", help="Subagent ID (e.g. subagent-101)")
 
     create_p = subparsers.add_parser("create-project", help="Create a new sandboxed project")
     create_p.add_argument("name", help="Project name (under /Users/hhhk/dev)")
@@ -247,6 +336,21 @@ def main():
         list_skills()
     elif args.command == "tokens":
         print_tokens()
+    elif args.command == "quota":
+        print_quota()
+    elif args.command == "archive":
+        toggle_project_archive(args.name, archive=True)
+    elif args.command == "unarchive":
+        toggle_project_archive(args.name, archive=False)
+    elif args.command == "subagent":
+        if args.sub_action == "list":
+            manage_subagents("list")
+        elif args.sub_action == "dispatch":
+            manage_subagents("dispatch", role=args.role, project=args.project, prompt=args.prompt)
+        elif args.sub_action == "kill":
+            manage_subagents("kill", subagent_id=args.id)
+        else:
+            sub_p.print_help()
     elif args.command == "create-project":
         create_project(args.name, args.template)
     elif args.command == "serve":

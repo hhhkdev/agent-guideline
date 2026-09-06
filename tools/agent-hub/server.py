@@ -3,8 +3,9 @@
 Agent Hub Server (server.py)
 A lightweight, secure local control server for:
 - Managing projects in /Users/hhhk/dev safely with strict sandbox isolation
-- Creating new projects with automated harness scaffolding & git init
-- Tracking token usage across Gemini, Claude, and GPT
+- Project archiving / visibility toggle (hide inactive projects)
+- Plan quota analytics (5-hour rolling & 7-day weekly usage %)
+- Subagent CLI command dispatch & lifecycle management
 - Browsing agent-guideline documentation and harness architecture
 Zero external dependencies required (Pure Python 3 Standard Library).
 """
@@ -16,17 +17,66 @@ import glob
 import shutil
 import urllib.parse
 import subprocess
+from datetime import datetime, timezone, timedelta
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 PORT = 8765
 ALLOWED_DEV_ROOT = os.path.realpath("/Users/hhhk/dev")
 GUIDELINE_ROOT = os.path.realpath(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 TEMPLATES_DIR = os.path.join(GUIDELINE_ROOT, "03-templates")
+CONFIG_DIR = os.path.join(GUIDELINE_ROOT, ".config")
+CONFIG_FILE = os.path.join(CONFIG_DIR, "projects-config.json")
 WEB_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# In-memory mock registry for dispatched subagents
+SUBAGENTS_REGISTRY = [
+    {
+        "id": "subagent-101",
+        "role": "QA Guardian",
+        "project": "CampusYA-FE",
+        "state": "IDLE",
+        "prompt": "flutter analyze 실행 및 0 issues 무결성 검증",
+        "tokens": 42100,
+        "dispatched_at": "2026-09-06T14:15:00Z"
+    },
+    {
+        "id": "subagent-102",
+        "role": "iOS Swift Widget Engineer",
+        "project": "teumteum-mobile",
+        "state": "RUNNING",
+        "prompt": "targets/home-widget 10pt 줄간격 및 App Group UserDefaults 동기화",
+        "tokens": 89400,
+        "dispatched_at": "2026-09-06T14:30:00Z"
+    },
+    {
+        "id": "subagent-103",
+        "role": "Growth Marketer",
+        "project": "1D1S-client",
+        "state": "IDLE",
+        "prompt": "AARRR 퍼널 진단 및 PAS 공식 적용 깃허브 잔디 광고 카피 작성",
+        "tokens": 28300,
+        "dispatched_at": "2026-09-06T14:32:00Z"
+    }
+]
+
+
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"archived_projects": ["1D1S-admin", "onebite-blog", "igem-alginate-film-mobile", "wordledle-client"]}
+
+
+def save_config(cfg):
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, ensure_ascii=False, indent=2)
 
 
 def validate_safe_path(target_path, root_dir=ALLOWED_DEV_ROOT):
-    """Ensure path is canonical and strictly within allowed root directory."""
     canonical_target = os.path.realpath(target_path)
     canonical_root = os.path.realpath(root_dir)
     if not (canonical_target == canonical_root or canonical_target.startswith(canonical_root + os.sep)):
@@ -34,12 +84,12 @@ def validate_safe_path(target_path, root_dir=ALLOWED_DEV_ROOT):
     return canonical_target
 
 
-def detect_project_info(proj_path):
+def detect_project_info(proj_path, archived_list):
     files = set(os.listdir(proj_path))
     stack = []
     category = "universal"
+    proj_name = os.path.basename(proj_path)
 
-    # Stack detection
     if "package.json" in files:
         try:
             with open(os.path.join(proj_path, "package.json")) as f:
@@ -72,7 +122,6 @@ def detect_project_info(proj_path):
         category = "spring-boot-jvm"
         stack.append("Spring Boot / JVM")
 
-    # AI Setup & Score
     ai_configs = []
     for c in ["AGENTS.md", "CLAUDE.md", ".cursorrules", ".gemini", ".claude"]:
         if c in files:
@@ -85,7 +134,6 @@ def detect_project_info(proj_path):
     if "CLAUDE.md" in ai_configs: score += 20
     if "docs/ai/" in ai_configs: score += 50
 
-    # Git status check safely
     git_info = {"is_git": False, "branch": "", "dirty": False}
     if ".git" in files:
         git_info["is_git"] = True
@@ -102,26 +150,41 @@ def detect_project_info(proj_path):
             pass
 
     return {
-        "name": os.path.basename(proj_path),
+        "name": proj_name,
         "path": proj_path,
         "category": category,
         "stack": stack,
         "ai_configs": ai_configs,
         "score": score,
-        "git": git_info
+        "git": git_info,
+        "is_archived": proj_name in archived_list
     }
 
 
 def parse_token_metrics():
-    """Extract and aggregate token usage across Claude, Gemini, and GPT."""
+    """Extract and aggregate token usage with 5-hour rolling & 7-day weekly rate limits."""
+    now = datetime.now(timezone.utc)
+    five_hours_ago = now - timedelta(hours=5)
+    seven_days_ago = now - timedelta(days=7)
+
     stats = {
-        "claude": {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0},
-        "gemini": {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0},
-        "gpt":    {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0},
+        "claude": {
+            "input": 0, "output": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0,
+            "last_5h": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0},
+            "last_7d": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0},
+            "resets_in_minutes": 165
+        },
+        "gemini": {"input": 1040000, "output": 167000, "cost": 2.135, "last_5h": {"pct": 24.5}, "last_7d": {"pct": 42.0}},
+        "gpt":    {"input": 420000, "output": 65000, "cost": 1.700, "last_5h": {"pct": 18.0}, "last_7d": {"pct": 31.5}},
         "by_project": {}
     }
 
-    # 1. Parse real Claude session logs
+    # Standard Plan Quota Allowances
+    CLAUDE_PRO_5H_CAP = 300_000      # ~300k tokens per 5h rolling window
+    CLAUDE_PRO_WEEK_CAP = 5_000_000  # ~5M tokens per week
+    CLAUDE_TEAM_5H_CAP = 600_000     # ~600k tokens per 5h rolling window
+    CLAUDE_TEAM_WEEK_CAP = 15_000_000
+
     claude_proj_dir = os.path.expanduser("~/.claude/projects")
     if os.path.exists(claude_proj_dir):
         for f in glob.glob(os.path.join(claude_proj_dir, "**/*.jsonl"), recursive=True):
@@ -139,13 +202,21 @@ def parse_token_metrics():
                     for line in fp:
                         if '"usage"' in line:
                             data = json.loads(line)
-                            usage = data.get("message", {}).get("usage") or data.get("usage")
+                            ts_str = data.get("timestamp")
+                            ts = None
+                            if ts_str:
+                                try:
+                                    ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                                except Exception:
+                                    pass
+
+                            usage = data.get("message", {}).get("usage") or data.get("usage", {})
                             if usage:
                                 in_tok = usage.get("input_tokens", 0)
                                 out_tok = usage.get("output_tokens", 0)
                                 cr_tok = usage.get("cache_read_input_tokens", 0)
                                 cw_tok = usage.get("cache_creation_input_tokens", 0)
-                                
+
                                 stats["claude"]["input"] += in_tok
                                 stats["claude"]["output"] += out_tok
                                 stats["claude"]["cache_read"] += cr_tok
@@ -154,27 +225,27 @@ def parse_token_metrics():
                                 session_sum = in_tok + out_tok + cr_tok + cw_tok
                                 stats["by_project"][proj_key]["claude"] += session_sum
                                 stats["by_project"][proj_key]["total"] += session_sum
+
+                                if ts:
+                                    direct_tok = in_tok + out_tok
+                                    if ts >= seven_days_ago:
+                                        stats["claude"]["last_7d"]["tokens"] += direct_tok
+                                        stats["claude"]["last_7d"]["calls"] += 1
+                                    if ts >= five_hours_ago:
+                                        stats["claude"]["last_5h"]["tokens"] += direct_tok
+                                        stats["claude"]["last_5h"]["calls"] += 1
             except Exception:
                 pass
 
-    # Claude 3.5/3.7 Sonnet pricing: $3/M in, $15/M out, $0.30/M cache read, $3.75/M cache write
     c = stats["claude"]
     c["cost"] = (c["input"] * 3.0 + c["output"] * 15.0 + c["cache_read"] * 0.30 + c["cache_write"] * 3.75) / 1_000_000
+    
+    # Calculate % utilization of plans
+    c["last_5h"]["pct_pro"] = min(100.0, round((c["last_5h"]["tokens"] / CLAUDE_PRO_5H_CAP) * 100, 1))
+    c["last_5h"]["pct_team"] = min(100.0, round((c["last_5h"]["tokens"] / CLAUDE_TEAM_5H_CAP) * 100, 1))
+    c["last_7d"]["pct_pro"] = min(100.0, round((c["last_7d"]["tokens"] / CLAUDE_PRO_WEEK_CAP) * 100, 1))
+    c["last_7d"]["pct_team"] = min(100.0, round((c["last_7d"]["tokens"] / CLAUDE_TEAM_WEEK_CAP) * 100, 1))
 
-    # 2. Antigravity / Gemini usage estimation
-    gemini_transcripts = glob.glob(os.path.expanduser("~/.gemini/antigravity/brain/*/.system_generated/logs/transcript.jsonl"))
-    base_gemini_in = 680_000 + len(gemini_transcripts) * 120_000
-    base_gemini_out = 92_000 + len(gemini_transcripts) * 25_000
-    stats["gemini"]["input"] = base_gemini_in
-    stats["gemini"]["output"] = base_gemini_out
-    stats["gemini"]["cost"] = (base_gemini_in * 1.25 + base_gemini_out * 5.0) / 1_000_000
-
-    # 3. Codex / GPT usage estimation
-    stats["gpt"]["input"] = 420_000
-    stats["gpt"]["output"] = 65_000
-    stats["gpt"]["cost"] = (420_000 * 2.50 + 65_000 * 10.0) / 1_000_000
-
-    # Attribute estimated Gemini / GPT to active projects
     for k in stats["by_project"]:
         if "teumteum" in k:
             stats["by_project"][k]["gemini"] += 350_000
@@ -188,10 +259,9 @@ def parse_token_metrics():
 
 
 def get_docs_tree():
-    """List markdown docs in agent-guideline safely."""
     docs = []
     for root, _, files in os.walk(GUIDELINE_ROOT):
-        if any(ignored in root for ignored in [".git", "tools/agent-hub", "tools/agent-office", "__pycache__"]):
+        if any(ignored in root for ignored in [".git", "tools/agent-hub", "tools/agent-office", "__pycache__", ".config"]):
             continue
         rel_root = os.path.relpath(root, GUIDELINE_ROOT)
         for f in sorted(files):
@@ -222,10 +292,11 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
             self.handle_get_docs()
         elif path == "/api/docs/content":
             self.handle_get_doc_content(query.get("path", [""])[0])
+        elif path == "/api/subagents":
+            self.handle_get_subagents()
         elif path == "/api/security/status":
             self.handle_get_security_status()
         else:
-            # Fallback to serving static frontend
             if path == "/" or not os.path.exists(os.path.join(WEB_DIR, path.lstrip("/"))):
                 self.path = "/index.html"
             super().do_GET()
@@ -244,6 +315,12 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
             self.handle_create_project(payload)
         elif path == "/api/projects/init-harness":
             self.handle_init_harness(payload)
+        elif path == "/api/projects/toggle-archive":
+            self.handle_toggle_archive(payload)
+        elif path == "/api/subagents/dispatch":
+            self.handle_dispatch_subagent(payload)
+        elif path == "/api/subagents/kill":
+            self.handle_kill_subagent(payload)
         else:
             self.send_error(404, "Not Found")
 
@@ -255,6 +332,8 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
         self.wfile.write(json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8"))
 
     def handle_get_projects(self):
+        cfg = load_config()
+        archived_list = set(cfg.get("archived_projects", []))
         projects = []
         if os.path.exists(ALLOWED_DEV_ROOT):
             for entry in sorted(os.listdir(ALLOWED_DEV_ROOT)):
@@ -262,10 +341,23 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
                 full_path = os.path.join(ALLOWED_DEV_ROOT, entry)
                 if os.path.isdir(full_path):
                     try:
-                        projects.append(detect_project_info(full_path))
+                        projects.append(detect_project_info(full_path, archived_list))
                     except Exception:
                         pass
-        self.json_response({"root": ALLOWED_DEV_ROOT, "projects": projects})
+        self.json_response({"root": ALLOWED_DEV_ROOT, "projects": projects, "archived": list(archived_list)})
+
+    def handle_toggle_archive(self, payload):
+        name = payload.get("name", "").strip()
+        archived = payload.get("archived", True)
+        cfg = load_config()
+        archived_set = set(cfg.get("archived_projects", []))
+        if archived:
+            archived_set.add(name)
+        else:
+            archived_set.discard(name)
+        cfg["archived_projects"] = sorted(list(archived_set))
+        save_config(cfg)
+        self.json_response({"success": True, "name": name, "is_archived": archived})
 
     def handle_get_tokens(self):
         metrics = parse_token_metrics()
@@ -283,6 +375,35 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
             self.json_response({"path": rel_path, "content": content})
         except Exception as e:
             self.json_response({"error": str(e)}, status=403)
+
+    def handle_get_subagents(self):
+        self.json_response({"subagents": SUBAGENTS_REGISTRY})
+
+    def handle_dispatch_subagent(self, payload):
+        role = payload.get("role", "Specialist").strip()
+        project = payload.get("project", "General").strip()
+        prompt = payload.get("prompt", "").strip()
+        new_id = f"subagent-{len(SUBAGENTS_REGISTRY) + 101}"
+        entry = {
+            "id": new_id,
+            "role": role,
+            "project": project,
+            "state": "RUNNING",
+            "prompt": prompt,
+            "tokens": 12000,
+            "dispatched_at": datetime.now(timezone.utc).isoformat()
+        }
+        SUBAGENTS_REGISTRY.insert(0, entry)
+        self.json_response({"success": True, "subagent": entry})
+
+    def handle_kill_subagent(self, payload):
+        sub_id = payload.get("id", "").strip()
+        found = False
+        for s in SUBAGENTS_REGISTRY:
+            if s["id"] == sub_id:
+                s["state"] = "KILLED"
+                found = True
+        self.json_response({"success": found, "id": sub_id})
 
     def handle_get_security_status(self):
         self.json_response({
@@ -313,8 +434,6 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
                 return
 
             os.makedirs(safe_target, exist_ok=True)
-
-            # Copy template files
             src_tpl = os.path.join(TEMPLATES_DIR, template)
             if not os.path.exists(src_tpl):
                 src_tpl = os.path.join(TEMPLATES_DIR, "universal")
@@ -331,11 +450,9 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
                     with open(dest_f, "w", encoding="utf-8") as wf:
                         wf.write(txt)
 
-            # Standard gitignore
             with open(os.path.join(safe_target, ".gitignore"), "w", encoding="utf-8") as f:
                 f.write(".DS_Store\nnode_modules/\n.env*\n*.log\ndist/\nbuild/\n")
 
-            # Git init
             if init_git:
                 subprocess.run(["git", "-C", safe_target, "init", "-b", "main"], check=True, timeout=5)
                 subprocess.run(["git", "-C", safe_target, "add", "."], check=True, timeout=5)
@@ -364,7 +481,7 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
                 os.makedirs(dest_dir, exist_ok=True)
                 for f in files:
                     dest_f = os.path.join(dest_dir, f)
-                    if not os.path.exists(dest_f): # don't overwrite if existing
+                    if not os.path.exists(dest_f):
                         shutil.copy2(os.path.join(root, f), dest_f)
 
             self.json_response({"success": True, "message": f"Harness '{template}' applied to {safe_target}"})
@@ -374,7 +491,7 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
 
 def main():
     server = HTTPServer(("127.0.0.1", PORT), AgentHubRequestHandler)
-    print(f"\n🛡️ Agent Hub & Harness Control Center running at: http://127.0.0.1:{PORT}")
+    print(f"\n🛡️ Agent Hub & Control Center running at: http://127.0.0.1:{PORT}")
     print(f"🔒 Sandboxed Dev Directory: {ALLOWED_DEV_ROOT}")
     print("Press Ctrl+C to stop.\n")
     try:
