@@ -2,668 +2,478 @@
 <html lang="ko" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Agent Hub — Enterprise Multi-Project & Subagent Control Center</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
-    .mono { font-family: 'JetBrains Mono', monospace; }
-    /* Glassmorphism & Custom Scroll */
+    body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
     .glass-panel {
-      background: rgba(13, 17, 28, 0.7);
+      background: rgba(13, 17, 28, 0.75);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .glass-card {
-      background: rgba(18, 24, 38, 0.6);
+      background: rgba(18, 24, 38, 0.65);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.07);
     }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
   </style>
 </head>
-<body class="bg-[#07090e] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white relative overflow-x-hidden">
+<body class="bg-[#04060a] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white relative overflow-x-hidden">
 
   <!-- Ambient Glow Backgrounds -->
-  <div class="fixed top-0 left-1/4 w-[600px] h-[350px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
-  <div class="fixed bottom-0 right-10 w-[500px] h-[350px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <div class="fixed top-0 left-1/4 w-[450px] lg:w-[650px] h-[300px] bg-indigo-600/[0.08] rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-0 right-10 w-[350px] lg:w-[500px] h-[300px] bg-purple-600/[0.08] rounded-full blur-[140px] pointer-events-none -z-10"></div>
 
-  <!-- Header Navigation -->
-  <header class="sticky top-0 z-50 glass-panel border-b border-white/[0.07] px-4 lg:px-8 py-3.5 transition-all">
-    <div class="max-w-[1700px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+  <!-- Header Navigation (Fully Responsive) -->
+  <header class="sticky top-0 z-50 glass-panel border-b border-white/[0.07] px-3 sm:px-6 py-2.5 transition-all">
+    <div class="max-w-[1700px] mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5">
       
       <!-- Brand & Status -->
       <div class="flex items-center justify-between w-full md:w-auto">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 border border-white/20">
-            <span class="mono font-black text-sm text-white tracking-wider">AH</span>
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 border border-white/20 flex-shrink-0">
+            <span class="mono font-black text-xs text-white">AH</span>
           </div>
           <div>
-            <div class="flex items-center gap-2">
-              <h1 class="font-bold text-sm tracking-tight text-white">Agent Hub Control Center</h1>
-              <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center gap-1">
+            <div class="flex items-center gap-1.5">
+              <h1 class="font-bold text-xs sm:text-sm tracking-tight text-white">Agent Hub Control Center</h1>
+              <span class="px-1.5 py-0.2 text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                SANDBOX SECURE
+                SECURE
               </span>
             </div>
-            <p class="text-[11px] text-slate-400">멀티 프로젝트 관리 · 5h/주간 플랜 할당량 · 서브에이전트 CLI 오케스트레이터</p>
+            <p class="text-[10px] text-slate-400">프로젝트 관리 · 3대 AI 쿼터(Claude·Gemini·GPT) · 스킬 마켓 · 서브에이전트</p>
           </div>
         </div>
-
-        <!-- Mobile Navigation Toggle -->
-        <button onclick="toggleMobileNav()" class="md:hidden p-2 rounded-lg bg-slate-800 text-slate-300">
-          ☰
-        </button>
       </div>
 
-      <!-- Navigation Tabs (Responsive) -->
-      <nav id="nav-tabs" class="flex items-center gap-1 bg-slate-950/70 p-1 rounded-xl border border-white/[0.06] overflow-x-auto max-w-full w-full md:w-auto">
-        <button onclick="switchTab('projects')" id="tab-btn-projects" class="tab-btn whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1.5">
+      <!-- Navigation Tabs (Fluid Horizontal Scroll for Mobile) -->
+      <nav class="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-white/[0.06] overflow-x-auto max-w-full w-full md:w-auto no-scrollbar">
+        <button onclick="switchTab('projects')" id="tab-btn-projects" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1">
           <span>📁</span> <span>프로젝트</span>
         </button>
-        <button onclick="switchTab('quota')" id="tab-btn-quota" class="tab-btn whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
-          <span>⏳</span> <span>플랜 할당량 (5h·주간)</span>
+        <button onclick="switchTab('quota')" id="tab-btn-quota" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
+          <span>⏳</span> <span>3대 AI 플랜 쿼터</span>
         </button>
-        <button onclick="switchTab('subagents')" id="tab-btn-subagents" class="tab-btn whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
+        <button onclick="switchTab('skills')" id="tab-btn-skills" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
+          <span>⭐</span> <span>스킬 마켓플레이스</span>
+        </button>
+        <button onclick="switchTab('subagents')" id="tab-btn-subagents" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
           <span>🤖</span> <span>서브에이전트 CLI</span>
         </button>
-        <button onclick="switchTab('wizard')" id="tab-btn-wizard" class="tab-btn whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
-          <span>✨</span> <span>새 프로젝트 생성</span>
+        <button onclick="switchTab('wizard')" id="tab-btn-wizard" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
+          <span>✨</span> <span>새 프로젝트</span>
         </button>
-        <button onclick="switchTab('docs')" id="tab-btn-docs" class="tab-btn whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
-          <span>📖</span> <span>하네스 문서</span>
-        </button>
-        <button onclick="switchTab('security')" id="tab-btn-security" class="tab-btn whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5">
-          <span>🛡️</span> <span>보안 격리</span>
+        <button onclick="switchTab('docs')" id="tab-btn-docs" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
+          <span>📖</span> <span>문서 뷰어</span>
         </button>
       </nav>
     </div>
   </header>
 
   <!-- Main Workspace -->
-  <main class="flex-1 p-4 lg:p-6 max-w-[1700px] w-full mx-auto space-y-6">
+  <main class="flex-1 p-3 sm:p-5 lg:p-6 max-w-[1700px] w-full mx-auto space-y-5">
 
     <!-- ======================================================== -->
-    <!-- TAB 1: PROJECTS MANAGER (Active vs Archived Filter)      -->
+    <!-- TAB 1: PROJECTS (Active vs Archived Filter)              -->
     <!-- ======================================================== -->
     <section id="tab-projects" class="tab-content space-y-4">
-      
-      <!-- Top Bar: Filter Pills, Search, Stats -->
-      <div class="glass-panel p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
-        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          <!-- Active / Archived Filter Pills -->
-          <button onclick="setProjectFilter('active')" id="filter-pill-active" class="filter-pill px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white transition flex items-center gap-1.5 shadow-sm">
+      <div class="glass-panel p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+        <!-- Filter Pills -->
+        <div class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+          <button onclick="setProjectFilter('active')" id="filter-pill-active" class="filter-pill px-3 py-1 rounded-xl text-xs font-bold bg-indigo-600 text-white transition flex items-center gap-1.5 shadow-sm">
             <span>🚀 진행 중인 프로젝트</span>
             <span id="badge-active-count" class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px]">0</span>
           </button>
-          <button onclick="setProjectFilter('all')" id="filter-pill-all" class="filter-pill px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900/60 border border-white/[0.06] transition flex items-center gap-1.5">
-            <span>전체 보기</span>
+          <button onclick="setProjectFilter('all')" id="filter-pill-all" class="filter-pill px-3 py-1 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900/60 border border-white/[0.06] transition flex items-center gap-1.5">
+            <span>전체</span>
             <span id="badge-all-count" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">0</span>
           </button>
-          <button onclick="setProjectFilter('archived')" id="filter-pill-archived" class="filter-pill px-3.5 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900/60 border border-white/[0.06] transition flex items-center gap-1.5">
+          <button onclick="setProjectFilter('archived')" id="filter-pill-archived" class="filter-pill px-3 py-1 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900/60 border border-white/[0.06] transition flex items-center gap-1.5">
             <span>📦 보관/숨김 목록</span>
             <span id="badge-archived-count" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">0</span>
           </button>
         </div>
 
-        <div class="flex items-center gap-2.5 w-full md:w-auto">
-          <input type="text" id="project-search-input" oninput="renderFilteredProjects()" placeholder="프로젝트명 또는 스택 검색..." class="w-full md:w-64 px-3.5 py-1.5 text-xs bg-slate-950/80 border border-white/[0.08] rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
-          <button onclick="loadProjects()" class="px-3 py-1.5 text-xs font-medium rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/[0.08] transition flex items-center gap-1">
-            <span>🔄</span>
-          </button>
-          <button onclick="switchTab('wizard')" class="whitespace-nowrap px-3.5 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/20 transition">
-            + 새 프로젝트
-          </button>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <input type="text" id="project-search-input" oninput="renderFilteredProjects()" placeholder="프로젝트/스택 검색..." class="w-full sm:w-56 px-3 py-1.5 text-xs bg-slate-950/80 border border-white/[0.08] rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+          <button onclick="loadProjects()" class="px-2.5 py-1.5 text-xs font-medium rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/[0.08] transition">🔄</button>
         </div>
       </div>
 
-      <!-- Projects Dynamic Grid -->
-      <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <!-- Injected via JavaScript -->
-      </div>
+      <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5"></div>
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 2: PLAN QUOTA & ROLLING WINDOW ANALYTICS (5h & 7d)   -->
+    <!-- TAB 2: 3-PROVIDER PLAN QUOTAS (Claude · Gemini · GPT)    -->
     <!-- ======================================================== -->
     <section id="tab-quota" class="tab-content hidden space-y-5">
       
-      <!-- Top Plan Selector Bar -->
-      <div class="glass-panel p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="glass-panel p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3">
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="text-base font-bold text-white">구독 플랜 5시간 롤링 및 주간 할당량 모니터링</h2>
-            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Claude Code Pro/Team</span>
+            <h2 class="text-sm sm:text-base font-bold text-white">3대 AI 프로바이더(Claude · Gemini · GPT) 플랜 할당량 뷰</h2>
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Live Rolling Window</span>
           </div>
-          <p class="text-xs text-slate-400 mt-0.5">단순 요금 계산이 아닌, 실제 구독 요금제의 5시간 및 주간 허용치 소진율(%)을 추적합니다.</p>
-        </div>
-
-        <!-- Plan Tier Selector -->
-        <div class="flex items-center gap-2 text-xs">
-          <span class="text-slate-400">내 구독 플랜:</span>
-          <select id="plan-tier-select" onchange="updateQuotaView()" class="px-3 py-1.5 bg-slate-900 border border-white/10 rounded-xl text-white font-medium focus:outline-none focus:border-indigo-500">
-            <option value="pro" selected>Claude Pro ($20/월 — 5h당 ~30만 토큰)</option>
-            <option value="team">Claude Team / Max ($30+/월 — 5h당 ~60만 토큰)</option>
-          </select>
+          <p class="text-xs text-slate-400 mt-0.5">단순 비용 계산이 아닌, 실제 결제하신 각 플랫폼 구독 요금제의 5시간/3시간/일일/주간 허용량 소진율(%)을 추적합니다.</p>
         </div>
       </div>
 
-      <!-- Live 5h & 7d Quota Gauges -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <!-- 3-Provider Cards Grid (Responsive 1/2/3 cols) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         
-        <!-- 5-Hour Rolling Window Card -->
-        <div class="glass-card p-6 rounded-2xl space-y-4 relative overflow-hidden">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold text-sm">5h</div>
-              <div>
-                <h3 class="font-bold text-sm text-white">5시간 롤링 윈도우 소진율</h3>
-                <p class="text-[11px] text-slate-400">직전 5시간 내 실행된 세션 호출 집계</p>
-              </div>
+        <!-- 1. Claude Card (5h & 7d) -->
+        <div class="glass-card p-5 rounded-2xl space-y-3.5 border-amber-500/20">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              <h3 class="font-bold text-sm text-amber-200">Anthropic Claude</h3>
             </div>
-            <span id="quota-5h-reset" class="px-2.5 py-1 rounded-full text-[11px] font-mono bg-slate-800/80 text-amber-300 border border-amber-500/30">
-              ⏱️ 리셋까지 약 165분
-            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">Claude Code</span>
           </div>
 
-          <!-- Gauge and Stats -->
-          <div class="flex items-center gap-6 pt-2">
-            <!-- Radial SVG Gauge -->
-            <div class="relative w-28 h-28 flex-shrink-0 flex items-center justify-center">
+          <!-- 5h Circular Gauge -->
+          <div class="bg-black/30 p-3.5 rounded-xl border border-white/5 flex items-center gap-4">
+            <div class="relative w-20 h-20 flex-shrink-0 flex items-center justify-center">
               <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path id="gauge-5h-circle" class="text-amber-400 transition-all duration-1000 ease-out" stroke-width="3.5"
-                  stroke-dasharray="79.1, 100" stroke-linecap="round" stroke="currentColor" fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path id="claude-5h-circ" class="text-amber-400 transition-all duration-1000" stroke-width="3.5" stroke-dasharray="79.1, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
               </svg>
               <div class="absolute text-center">
-                <span id="gauge-5h-pct" class="text-xl font-black mono text-white">79.1%</span>
-                <span class="block text-[9px] text-slate-400">Used</span>
+                <span class="text-base font-black mono text-white">79.1%</span>
+                <span class="block text-[8px] text-slate-400">5h 소진</span>
               </div>
             </div>
+            <div class="flex-1 space-y-1 text-[11px]">
+              <div class="flex justify-between text-slate-400"><span>5시간 토큰:</span><span class="mono text-white font-semibold">237,306</span></div>
+              <div class="flex justify-between text-slate-400"><span>호출 횟수:</span><span class="mono text-slate-300">365 calls</span></div>
+              <div class="text-[10px] text-amber-300 mono">⏱️ 리셋 약 165분 후</div>
+            </div>
+          </div>
 
-            <!-- Details -->
-            <div class="flex-1 space-y-2 text-xs">
-              <div class="flex justify-between text-slate-400">
-                <span>5시간 소모 토큰:</span>
-                <span id="val-5h-tokens" class="mono text-white font-semibold">237,306 tokens</span>
-              </div>
-              <div class="flex justify-between text-slate-400">
-                <span>API 세션 호출 수:</span>
-                <span id="val-5h-calls" class="mono text-slate-300 font-semibold">365 calls</span>
-              </div>
-              <div class="flex justify-between text-slate-400">
-                <span>안전 상태:</span>
-                <span class="text-emerald-400 font-bold flex items-center gap-1">
-                  <span>●</span> 정상 범위 (차단 위험 없음)
-                </span>
-              </div>
+          <!-- Weekly Meter -->
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between text-slate-400 text-[11px]">
+              <span>주간(7일) 누적 소진:</span>
+              <span class="mono text-white font-semibold">56.5% (2.82M / 5M)</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div class="bg-amber-400 h-full rounded-full" style="width: 56.5%"></div>
             </div>
           </div>
         </div>
 
-        <!-- 7-Day Weekly Window Card -->
-        <div class="glass-card p-6 rounded-2xl space-y-4 relative overflow-hidden">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-sm">7d</div>
-              <div>
-                <h3 class="font-bold text-sm text-white">주간(7일) 누적 사용량</h3>
-                <p class="text-[11px] text-slate-400">주간 계정 허용 쿼터 대비 사용량</p>
-              </div>
+        <!-- 2. Gemini Card (Daily & TPM) -->
+        <div class="glass-card p-5 rounded-2xl space-y-3.5 border-blue-500/20">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+              <h3 class="font-bold text-sm text-blue-200">Google Gemini</h3>
             </div>
-            <span class="px-2.5 py-1 rounded-full text-[11px] font-mono bg-slate-800/80 text-indigo-300 border border-indigo-500/30">
-              📅 매주 월요일 09:00 초기화
-            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">Antigravity IDE</span>
           </div>
 
-          <!-- Gauge and Stats -->
-          <div class="flex items-center gap-6 pt-2">
-            <!-- Radial SVG Gauge -->
-            <div class="relative w-28 h-28 flex-shrink-0 flex items-center justify-center">
+          <!-- Daily Circular Gauge -->
+          <div class="bg-black/30 p-3.5 rounded-xl border border-white/5 flex items-center gap-4">
+            <div class="relative w-20 h-20 flex-shrink-0 flex items-center justify-center">
               <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path id="gauge-7d-circle" class="text-indigo-400 transition-all duration-1000 ease-out" stroke-width="3.5"
-                  stroke-dasharray="56.5, 100" stroke-linecap="round" stroke="currentColor" fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="text-blue-400 transition-all duration-1000" stroke-width="3.5" stroke-dasharray="52.0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
               </svg>
               <div class="absolute text-center">
-                <span id="gauge-7d-pct" class="text-xl font-black mono text-white">56.5%</span>
-                <span class="block text-[9px] text-slate-400">Weekly</span>
+                <span class="text-base font-black mono text-white">52.0%</span>
+                <span class="block text-[8px] text-slate-400">Daily</span>
               </div>
             </div>
+            <div class="flex-1 space-y-1 text-[11px]">
+              <div class="flex justify-between text-slate-400"><span>일일 토큰:</span><span class="mono text-white font-semibold">1,040,000</span></div>
+              <div class="flex justify-between text-slate-400"><span>요청 횟수:</span><span class="mono text-slate-300">382 / 1,500</span></div>
+              <div class="text-[10px] text-blue-300 mono">📅 리셋 00:00 UTC (오전 9시)</div>
+            </div>
+          </div>
 
-            <!-- Details -->
-            <div class="flex-1 space-y-2 text-xs">
-              <div class="flex justify-between text-slate-400">
-                <span>주간 소모 토큰:</span>
-                <span id="val-7d-tokens" class="mono text-white font-semibold">2,827,112 tokens</span>
+          <!-- TPM Burst Meter -->
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between text-slate-400 text-[11px]">
+              <span>분당 토큰(TPM) 버스트:</span>
+              <span class="mono text-white font-semibold">14.5% (145k / 1M)</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div class="bg-blue-400 h-full rounded-full" style="width: 14.5%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. GPT Card (3h & Weekly) -->
+        <div class="glass-card p-5 rounded-2xl space-y-3.5 border-emerald-500/20">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              <h3 class="font-bold text-sm text-emerald-200">OpenAI GPT / Codex</h3>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Codex CLI</span>
+          </div>
+
+          <!-- 3-Hour Message Circular Gauge -->
+          <div class="bg-black/30 p-3.5 rounded-xl border border-white/5 flex items-center gap-4">
+            <div class="relative w-20 h-20 flex-shrink-0 flex items-center justify-center">
+              <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="text-emerald-400 transition-all duration-1000" stroke-width="3.5" stroke-dasharray="35.0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <div class="absolute text-center">
+                <span class="text-base font-black mono text-white">35.0%</span>
+                <span class="block text-[8px] text-slate-400">3h Limit</span>
               </div>
-              <div class="flex justify-between text-slate-400">
-                <span>주간 세션 호출 수:</span>
-                <span id="val-7d-calls" class="mono text-slate-300 font-semibold">3,719 calls</span>
-              </div>
-              <div class="flex justify-between text-slate-400">
-                <span>남은 주간 버퍼:</span>
-                <span id="val-7d-remain" class="text-indigo-300 font-bold mono">~2.17M tokens</span>
-              </div>
+            </div>
+            <div class="flex-1 space-y-1 text-[11px]">
+              <div class="flex justify-between text-slate-400"><span>3시간 메시지:</span><span class="mono text-white font-semibold">14 / 40 msgs</span></div>
+              <div class="flex justify-between text-slate-400"><span>사용 토큰:</span><span class="mono text-slate-300">~65k tokens</span></div>
+              <div class="text-[10px] text-emerald-300 mono">⏱️ 리셋 약 75분 후</div>
+            </div>
+          </div>
+
+          <!-- Weekly Cap Meter -->
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between text-slate-400 text-[11px]">
+              <span>주간 토큰 소진율:</span>
+              <span class="mono text-white font-semibold">84.0% (420k / 500k)</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div class="bg-emerald-400 h-full rounded-full" style="width: 84.0%"></div>
             </div>
           </div>
         </div>
 
       </div>
-
-      <!-- Multi-Model Comparison Table -->
-      <div class="glass-panel p-5 rounded-2xl">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">AI 모델별 플랜 할당량 현황 요약</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs text-left">
-            <thead class="border-b border-white/10 text-slate-400 mono">
-              <tr>
-                <th class="p-3">프로바이더 및 모델</th>
-                <th class="p-3">할당 주기 규격</th>
-                <th class="p-3 text-right">현재 구간 사용량</th>
-                <th class="p-3 text-right">할당치 소진율(%)</th>
-                <th class="p-3 text-right">상태</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-white/[0.06]">
-              <tr>
-                <td class="p-3 font-bold text-amber-300">Claude 3.7 / 3.5 Sonnet (Claude Code)</td>
-                <td class="p-3 text-slate-400">5시간 롤링 윈도우 (~30만 토큰)</td>
-                <td class="p-3 text-right mono text-white">237,306 tokens</td>
-                <td class="p-3 text-right mono font-bold text-amber-400">79.1%</td>
-                <td class="p-3 text-right"><span class="px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30">활성 사용 중</span></td>
-              </tr>
-              <tr>
-                <td class="p-3 font-bold text-blue-300">Gemini 2.0 Flash / Pro (Antigravity)</td>
-                <td class="p-3 text-slate-400">일일 RPM/TPM 쿼터 (1M TPM)</td>
-                <td class="p-3 text-right mono text-white">167,000 output tokens</td>
-                <td class="p-3 text-right mono font-bold text-emerald-400">24.5%</td>
-                <td class="p-3 text-right"><span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">매우 여유</span></td>
-              </tr>
-              <tr>
-                <td class="p-3 font-bold text-emerald-300">GPT-4o / o1-mini (Codex CLI)</td>
-                <td class="p-3 text-slate-400">3시간 메시지 캡 (40~80 calls)</td>
-                <td class="p-3 text-right mono text-white">14 calls (약 65k tokens)</td>
-                <td class="p-3 text-right mono font-bold text-emerald-400">18.0%</td>
-                <td class="p-3 text-right"><span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">매우 여유</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 3: SUBAGENT CLI MANAGEMENT LAB                       -->
+    <!-- TAB 3: SKILLS & TOOLS MARKETPLACE (Reviews & Pros/Cons)  -->
     <!-- ======================================================== -->
-    <section id="tab-subagents" class="tab-content hidden space-y-5">
-      <div class="glass-panel p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+    <section id="tab-skills" class="tab-content hidden space-y-4">
+      <div class="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
         <div>
-          <h2 class="text-base font-bold text-white flex items-center gap-2">
-            <span>🤖 서브에이전트 CLI 오케스트레이션 콘솔</span>
+          <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <span>⭐ 검증된 AI 스킬 & 도구 마켓플레이스</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">Curated & Tested</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-0.5">터미널 명령어(`python3 tools/harness-cli.py subagent ...`)로 서브에이전트를 생성, 감시, 종료합니다.</p>
+          <p class="text-xs text-slate-400 mt-0.5">실제 개발자들의 평점, 장단점 비교, 어떤 상황에 유리한지 사람들의 의견을 종합한 카탈로그입니다.</p>
         </div>
-        <button onclick="loadSubagents()" class="px-3.5 py-1.5 text-xs font-medium rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 transition">
-          🔄 상태 갱신
-        </button>
+        <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-white/10 text-xs">
+          <button onclick="filterSkills('all')" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-semibold">전체</button>
+          <button onclick="filterSkills('UI & Design')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">UI/Design</button>
+          <button onclick="filterSkills('Mobile')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">Mobile</button>
+          <button onclick="filterSkills('Frontend & API')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">API</button>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <!-- Subagent Dispatcher Form (5 cols) -->
-        <div class="col-span-12 lg:col-span-5 glass-card p-5 rounded-2xl space-y-4">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2">
-            ⚡ 신규 서브에이전트 발주 (Dispatch)
-          </h3>
-          <form onsubmit="handleDispatchSubagent(event)" class="space-y-3.5 text-xs">
+      <div id="skills-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB 4: SUBAGENT CLI CONSOLE                              -->
+    <!-- ======================================================== -->
+    <section id="tab-subagents" class="tab-content hidden space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div class="col-span-12 lg:col-span-5 glass-card p-4 rounded-2xl space-y-3 text-xs">
+          <h3 class="font-bold text-slate-200 border-b border-white/10 pb-2">⚡ 신규 서브에이전트 발주 (Dispatch)</h3>
+          <form onsubmit="dispatchSubagent(event)" class="space-y-3">
             <div>
-              <label class="block text-slate-400 mb-1">담당 역할 (Role)</label>
-              <input type="text" id="sub-role" required placeholder="예: Flutter Token Guardian" class="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+              <label class="text-slate-400 block mb-1">역할 (Role)</label>
+              <input type="text" id="sub-role" required placeholder="예: Flutter Token Guardian" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">대상 프로젝트</label>
-              <select id="sub-proj" class="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500">
+              <label class="text-slate-400 block mb-1">대상 프로젝트</label>
+              <select id="sub-proj" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
                 <option value="CampusYA-FE">CampusYA-FE</option>
                 <option value="teumteum-mobile">teumteum-mobile</option>
                 <option value="1D1S-client">1D1S-client</option>
                 <option value="hivcd-frontend">hivcd-frontend</option>
-                <option value="General">General (공통)</option>
               </select>
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">수행 프롬프트 (Prompt)</label>
-              <textarea id="sub-prompt" rows="3" required placeholder="예: flutter analyze 0 issues 달성할 때까지 하드코딩 색상을 AppColors로 치환하라" class="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-500"></textarea>
+              <label class="text-slate-400 block mb-1">프롬프트</label>
+              <textarea id="sub-prompt" rows="2" required placeholder="수행할 구체적인 작업 지시" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white"></textarea>
             </div>
-            <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition shadow-lg shadow-indigo-500/20">
+            <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition">
               🚀 서브에이전트 발주 (CLI Dispatch)
             </button>
           </form>
-
-          <!-- CLI Equivalent Cheatsheet -->
-          <div class="bg-black/50 p-3 rounded-xl border border-white/5 space-y-1">
-            <span class="text-[10px] text-slate-500 block uppercase font-bold">동일 터미널 명령어:</span>
-            <code class="text-[11px] mono text-indigo-300 block select-all">python3 tools/harness-cli.py subagent dispatch --role "Role" --project "Name" --prompt "..."</code>
+          <div class="bg-black/50 p-2.5 rounded-xl border border-white/5 text-[10px] mono text-indigo-300 select-all">
+            CLI: python3 tools/harness-cli.py subagent dispatch --role "..." --project "..."
           </div>
         </div>
 
-        <!-- Active Subagents Live Table (7 cols) -->
-        <div class="col-span-12 lg:col-span-7 glass-panel p-5 rounded-2xl flex flex-col justify-between">
+        <div class="col-span-12 lg:col-span-7 glass-panel p-4 rounded-2xl flex flex-col justify-between text-xs">
           <div>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 border-b border-white/10 pb-2 mb-3">
-              📋 현재 등록 및 실행 중인 서브에이전트 목록
-            </h3>
-            <div id="subagents-list" class="space-y-2.5">
-              <!-- Dynamically populated -->
-            </div>
+            <h3 class="font-bold text-slate-200 border-b border-white/10 pb-2 mb-3">📋 활성 서브에이전트 레지스트리</h3>
+            <div id="subagents-list" class="space-y-2"></div>
           </div>
-
-          <div class="mt-4 pt-3 border-t border-white/10 flex justify-between items-center text-[11px] text-slate-400">
-            <span>골든 룰: 완료된 서브에이전트는 즉시 Kill하여 좀비 프로세스 방지</span>
-            <code class="mono text-rose-400 select-all">manage_subagents(kill_all)</code>
+          <div class="mt-3 pt-2 border-t border-white/10 text-[10px] text-slate-500 flex justify-between">
+            <span>완료 시 즉시 Kill하여 토큰 보호</span>
+            <code class="mono text-rose-400">manage_subagents(kill_all)</code>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 4: NEW PROJECT WIZARD                                -->
+    <!-- TAB 5: WIZARD                                            -->
     <!-- ======================================================== -->
-    <section id="tab-wizard" class="tab-content hidden max-w-2xl mx-auto space-y-5">
-      <div class="glass-panel p-6 rounded-2xl space-y-5 shadow-2xl">
-        <div class="border-b border-white/10 pb-3">
-          <h2 class="text-base font-bold text-white flex items-center gap-2">
-            <span>✨ 안전한 신규 프로젝트 생성 & 하네스 스캐폴더</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-1">지정된 샌드박스(<code class="mono text-indigo-300">/Users/hhhk/dev</code>) 내에 폴더를 생성하고 Git 및 GitHub 원격 연결 명령을 자동 준비합니다.</p>
+    <section id="tab-wizard" class="tab-content hidden max-w-xl mx-auto glass-panel p-5 rounded-2xl space-y-4 text-xs">
+      <h2 class="text-sm font-bold text-white border-b border-white/10 pb-2">✨ 신규 프로젝트 안전 생성</h2>
+      <form onsubmit="handleWiz(event)" class="space-y-3">
+        <div>
+          <label class="block text-slate-400 mb-1">폴더명 (샌드박스 내부)</label>
+          <div class="flex">
+            <span class="px-3 py-1.5 bg-slate-900 border border-r-0 border-white/10 text-slate-400 mono rounded-l-xl">/Users/hhhk/dev/</span>
+            <input type="text" id="wiz-in" required placeholder="my-awesome-app" class="flex-1 px-3 py-1.5 bg-slate-950 border border-white/10 rounded-r-xl text-white mono">
+          </div>
         </div>
-
-        <form onsubmit="handleCreateProj(event)" class="space-y-4 text-xs">
-          <div>
-            <label class="block font-bold text-slate-300 mb-1">프로젝트 폴더명</label>
-            <div class="flex">
-              <span class="px-3.5 py-2 bg-slate-900 border border-r-0 border-white/10 text-slate-400 mono rounded-l-xl">/Users/hhhk/dev/</span>
-              <input type="text" id="wiz-name" required placeholder="new-service" pattern="[a-zA-Z0-9_\-]+" class="flex-1 px-3 py-2 bg-slate-950 border border-white/10 rounded-r-xl mono text-white focus:outline-none focus:border-indigo-500">
-            </div>
-          </div>
-
-          <div>
-            <label class="block font-bold text-slate-300 mb-2">하네스 템플릿 선택</label>
-            <div class="grid grid-cols-2 gap-2.5">
-              <label class="flex items-center gap-2.5 p-3 rounded-xl border border-indigo-500/40 bg-indigo-950/20 cursor-pointer">
-                <input type="radio" name="wiz-tpl" value="nextjs-fullstack" checked>
-                <div>
-                  <div class="font-bold text-white">Next.js Fullstack</div>
-                  <div class="text-[10px] text-slate-400">App Router · TanStack Query · Knip</div>
-                </div>
-              </label>
-              <label class="flex items-center gap-2.5 p-3 rounded-xl border border-white/10 bg-slate-900/40 cursor-pointer">
-                <input type="radio" name="wiz-tpl" value="react-native-expo">
-                <div>
-                  <div class="font-bold text-white">React Native Expo</div>
-                  <div class="text-[10px] text-slate-400">Swift 위젯 · EAS OTA 안전잠금</div>
-                </div>
-              </label>
-              <label class="flex items-center gap-2.5 p-3 rounded-xl border border-white/10 bg-slate-900/40 cursor-pointer">
-                <input type="radio" name="wiz-tpl" value="flutter-riverpod">
-                <div>
-                  <div class="font-bold text-white">Flutter Riverpod</div>
-                  <div class="text-[10px] text-slate-400">AppColors 토큰 · flutter analyze</div>
-                </div>
-              </label>
-              <label class="flex items-center gap-2.5 p-3 rounded-xl border border-white/10 bg-slate-900/40 cursor-pointer">
-                <input type="radio" name="wiz-tpl" value="spring-boot-jvm">
-                <div>
-                  <div class="font-bold text-white">Spring Boot 3</div>
-                  <div class="text-[10px] text-slate-400">JPA · DTO Record · Docker</div>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <div class="bg-slate-950/70 p-3 rounded-xl border border-white/5 space-y-1.5">
-            <label class="flex items-center gap-2">
-              <input type="checkbox" id="wiz-git" checked class="rounded">
-              <span class="text-slate-300">Git 로컬 초기화 (`main` 브랜치) 및 초기 커밋 자동 생성</span>
-            </label>
-            <label class="flex items-center gap-2">
-              <input type="checkbox" id="wiz-shield" checked class="rounded">
-              <span class="text-slate-300">Secret Shield (.gitignore에 .env, 키 파일 차단 보호 자동 적용)</span>
-            </label>
-          </div>
-
-          <div class="flex justify-between items-center pt-2">
-            <span id="wiz-msg" class="text-xs text-indigo-400 mono"></span>
-            <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold transition shadow-lg shadow-indigo-500/20">
-              🚀 프로젝트 생성
-            </button>
-          </div>
-        </form>
-
-        <div id="wiz-result" class="hidden mt-4 pt-4 border-t border-white/10 bg-black/60 p-3.5 rounded-xl text-xs space-y-2">
-          <div class="text-emerald-400 font-bold">✅ 프로젝트가 안전하게 생성되었습니다!</div>
-          <p class="text-slate-400">GitHub 저장소 생성 및 푸시 명령어:</p>
-          <pre id="wiz-cmd" class="p-2.5 bg-black rounded-lg text-[11px] mono text-emerald-300 overflow-x-auto select-all border border-white/5"></pre>
+        <div>
+          <label class="block text-slate-400 mb-1">하네스 템플릿</label>
+          <select id="wiz-sel" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
+            <option value="nextjs-fullstack">Next.js Fullstack (App Router, Tailwind, Knip)</option>
+            <option value="react-native-expo">React Native Expo (Swift Widgets, EAS OTA)</option>
+            <option value="flutter-riverpod">Flutter Riverpod (AppColors, flutter analyze)</option>
+            <option value="spring-boot-jvm">Spring Boot 3 (JPA Record DTO, Docker)</option>
+            <option value="design-system">Design System (Storybook, Tokens)</option>
+          </select>
         </div>
+        <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition">
+          🚀 프로젝트 생성 및 하네스 구축
+        </button>
+      </form>
+      <div id="wiz-done" class="hidden p-3 bg-black/60 rounded-xl border border-white/5 space-y-1">
+        <div class="text-emerald-400 font-bold">생성 완료! GitHub 연결 커맨드:</div>
+        <pre id="wiz-cmd" class="text-[10px] mono text-slate-300 select-all"></pre>
       </div>
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 5: HARNESS DOCS VIEWER                               -->
+    <!-- TAB 6: DOCS VIEWER                                       -->
     <!-- ======================================================== -->
     <section id="tab-docs" class="tab-content hidden grid grid-cols-12 gap-4 h-[calc(100vh-140px)]">
       <div class="col-span-12 lg:col-span-4 glass-panel p-4 rounded-2xl flex flex-col h-full text-xs">
-        <h3 class="font-bold text-slate-200 border-b border-white/10 pb-2 mb-2 flex justify-between items-center">
-          <span>agent-guideline 문서 라이브러리</span>
-          <span id="docs-count-pill" class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 mono">- docs</span>
-        </h3>
-        <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="docs-tree-container">
-          <!-- Injected via JS -->
-        </div>
+        <h3 class="font-bold text-slate-200 border-b border-white/10 pb-2 mb-2">agent-guideline 문서 라이브러리</h3>
+        <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="docs-tree-container"></div>
       </div>
-      <div class="col-span-12 lg:col-span-8 glass-panel p-5 rounded-2xl flex flex-col h-full text-xs">
-        <div class="flex justify-between items-center border-b border-white/10 pb-2.5 mb-3">
+      <div class="col-span-12 lg:col-span-8 glass-panel p-4 rounded-2xl flex flex-col h-full text-xs">
+        <div class="flex justify-between items-center border-b border-white/10 pb-2 mb-2">
           <span id="doc-active-title" class="mono font-bold text-indigo-400">문서를 선택하세요</span>
-          <button onclick="copyDocContent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 mono text-[11px]">
-            📋 복사
-          </button>
+          <button onclick="copyDocContent()" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 mono text-[10px]">📋 복사</button>
         </div>
-        <pre id="doc-content-body" class="flex-1 bg-slate-950/80 p-4 rounded-xl border border-white/5 overflow-y-auto mono text-slate-300 leading-relaxed whitespace-pre-wrap select-text"></pre>
-      </div>
-    </section>
-
-    <!-- ======================================================== -->
-    <!-- TAB 6: SECURITY & SANDBOX                                -->
-    <!-- ======================================================== -->
-    <section id="tab-security" class="tab-content hidden max-w-3xl mx-auto space-y-4">
-      <div class="glass-panel p-6 rounded-2xl space-y-5 text-xs">
-        <h2 class="text-sm font-bold text-white flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>5대 보안 샌드박스 격리 규격 (Security Guardrails)</span>
-        </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div class="p-3.5 bg-slate-950/80 rounded-xl border border-white/5">
-            <strong class="text-indigo-400 block mb-1">1. Dev Root 경계 엄수</strong>
-            <span class="text-slate-400">작업 허용 영역: <code class="mono text-slate-200">/Users/hhhk/dev/*</code>. 그 외의 모든 시스템 폴더 수정 차단.</span>
-          </div>
-          <div class="p-3.5 bg-slate-950/80 rounded-xl border border-white/5">
-            <strong class="text-indigo-400 block mb-1">2. 상대경로(../) 탈출 방어</strong>
-            <span class="text-slate-400"><code class="mono text-slate-200">realpath()</code> 검증으로 `~/.ssh`, `~/.aws`, 루트 탈출 공격 방어.</span>
-          </div>
-          <div class="p-3.5 bg-slate-950/80 rounded-xl border border-white/5">
-            <strong class="text-indigo-400 block mb-1">3. Secret Shield</strong>
-            <span class="text-slate-400">.env, id_rsa, credentials.json 등 민감 파일은 표준 .gitignore로 격리하여 Git 유출 원천 방지.</span>
-          </div>
-          <div class="p-3.5 bg-slate-950/80 rounded-xl border border-white/5">
-            <strong class="text-indigo-400 block mb-1">4. Safe Command Whitelist</strong>
-            <span class="text-slate-400">파괴적 커맨드 차단. 검증된 빌드/린트/git 커맨드만 허용.</span>
-          </div>
-        </div>
-
-        <div class="p-4 bg-slate-950 rounded-xl border border-emerald-500/30 flex items-center justify-between">
-          <div>
-            <span class="font-bold text-emerald-400">경로 탈출(Path Traversal) 공격 방어 테스트</span>
-            <div id="sec-test-result" class="text-[11px] text-slate-400 mt-0.5">상태: 100% 차단 격리 가동 중</div>
-          </div>
-          <button onclick="runSecTest()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 mono">방어 테스트</button>
-        </div>
+        <pre id="doc-content-body" class="flex-1 bg-slate-950/80 p-3 rounded-xl border border-white/5 overflow-y-auto mono text-slate-300 leading-relaxed whitespace-pre-wrap select-text"></pre>
       </div>
     </section>
 
   </main>
 
-  <!-- Client-Side Engine -->
+  <!-- Script Logic -->
   <script>
     let allProjects = [];
     let currentFilter = 'active';
-    let quotaData = {};
-    let subagentsData = [];
+    let skillsList = [];
+    let subagentsList = [];
 
-    function toggleMobileNav() {
-      const el = document.getElementById('nav-tabs');
-      el.classList.toggle('hidden');
-    }
-
-    function switchTab(tabId) {
+    function switchTab(id) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('bg-indigo-600', 'text-white');
         btn.classList.add('text-slate-400');
       });
-
-      const sec = document.getElementById(`tab-${tabId}`);
-      if (sec) sec.classList.remove('hidden');
-
-      const btn = document.getElementById(`tab-btn-${tabId}`);
+      const target = document.getElementById(`tab-${id}`);
+      if (target) target.classList.remove('hidden');
+      const btn = document.getElementById(`tab-btn-${id}`);
       if (btn) {
         btn.classList.remove('text-slate-400');
         btn.classList.add('bg-indigo-600', 'text-white');
       }
 
-      if (tabId === 'projects') loadProjects();
-      if (tabId === 'quota') loadQuota();
-      if (tabId === 'subagents') loadSubagents();
-      if (tabId === 'docs') loadDocs();
+      if (id === 'projects') loadProjects();
+      if (id === 'skills') loadSkills();
+      if (id === 'subagents') loadSubagents();
+      if (id === 'docs') loadDocs();
     }
 
-    // -------------------------------------------------------------
-    // Projects Logic
-    // -------------------------------------------------------------
+    // Projects
     async function loadProjects() {
       try {
         const res = await fetch('/api/projects');
         const data = await res.json();
         allProjects = data.projects || [];
         renderFilteredProjects();
-      } catch (e) {
-        console.error('Failed to load projects:', e);
-      }
+      } catch (e) { console.error(e); }
     }
 
-    function setProjectFilter(filter) {
-      currentFilter = filter;
-      document.querySelectorAll('.filter-pill').forEach(btn => {
-        btn.classList.remove('bg-indigo-600', 'text-white', 'font-bold');
-        btn.classList.add('text-slate-400', 'font-medium');
+    function setProjectFilter(mode) {
+      currentFilter = mode;
+      document.querySelectorAll('.filter-pill').forEach(p => {
+        p.classList.remove('bg-indigo-600', 'text-white', 'font-bold');
+        p.classList.add('text-slate-400', 'font-medium');
       });
-      const activePill = document.getElementById(`filter-pill-${filter}`);
-      if (activePill) {
-        activePill.classList.remove('text-slate-400', 'font-medium');
-        activePill.classList.add('bg-indigo-600', 'text-white', 'font-bold');
+      const active = document.getElementById(`filter-pill-${mode}`);
+      if (active) {
+        active.classList.remove('text-slate-400', 'font-medium');
+        active.classList.add('bg-indigo-600', 'text-white', 'font-bold');
       }
       renderFilteredProjects();
     }
 
     function renderFilteredProjects() {
-      const search = (document.getElementById('project-search-input').value || '').toLowerCase();
-      
-      const activeList = allProjects.filter(p => !p.is_archived);
-      const archivedList = allProjects.filter(p => p.is_archived);
+      const q = (document.getElementById('project-search-input')?.value || '').toLowerCase();
+      const active = allProjects.filter(p => !p.is_archived);
+      const arch = allProjects.filter(p => p.is_archived);
 
-      document.getElementById('badge-active-count').innerText = activeList.length;
+      document.getElementById('badge-active-count').innerText = active.length;
       document.getElementById('badge-all-count').innerText = allProjects.length;
-      document.getElementById('badge-archived-count').innerText = archivedList.length;
+      document.getElementById('badge-archived-count').innerText = arch.length;
 
-      let displayList = allProjects;
-      if (currentFilter === 'active') displayList = activeList;
-      if (currentFilter === 'archived') displayList = archivedList;
+      let list = allProjects;
+      if (currentFilter === 'active') list = active;
+      if (currentFilter === 'archived') list = arch;
 
-      if (search) {
-        displayList = displayList.filter(p => p.name.toLowerCase().includes(search) || p.stack.some(s => s.toLowerCase().includes(search)));
-      }
+      if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || p.stack.some(s => s.toLowerCase().includes(q)));
 
       const container = document.getElementById('projects-grid');
-      if (!displayList.length) {
-        container.innerHTML = '<div class="col-span-full text-center py-12 text-slate-500 text-xs">일치하는 프로젝트가 없습니다.</div>';
-        return;
-      }
-
-      container.innerHTML = displayList.map(p => {
+      container.innerHTML = list.map(p => {
         const scoreColor = p.score === 100 ? 'text-emerald-400' : (p.score >= 50 ? 'text-amber-400' : 'text-rose-400');
-        const scoreBarColor = p.score === 100 ? 'bg-emerald-500' : (p.score >= 50 ? 'bg-amber-500' : 'bg-rose-500');
-
         return `
-          <div class="glass-card p-4 rounded-2xl flex flex-col justify-between hover:border-white/20 transition group">
+          <div class="glass-card p-3.5 rounded-2xl flex flex-col justify-between hover:border-white/20 transition">
             <div>
-              <div class="flex items-start justify-between gap-2 mb-2">
+              <div class="flex justify-between items-start mb-1.5">
                 <div>
-                  <div class="flex items-center gap-1.5">
-                    <h3 class="font-bold text-sm text-white group-hover:text-indigo-300 transition truncate max-w-[180px]">${p.name}</h3>
-                    ${p.is_archived ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">보관됨</span>' : ''}
-                  </div>
-                  <div class="text-[10px] text-slate-400 mono mt-0.5">${p.category}</div>
+                  <h4 class="font-bold text-sm text-white truncate max-w-[160px]">${p.name}</h4>
+                  <div class="text-[10px] text-slate-500 mono">${p.category}</div>
                 </div>
-                <div class="text-right">
-                  <span class="mono font-bold text-xs ${scoreColor}">${p.score}점</span>
-                  <div class="w-12 bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1">
-                    <div class="${scoreBarColor} h-full rounded-full" style="width: ${p.score}%"></div>
-                  </div>
-                </div>
+                <span class="mono font-bold text-xs ${scoreColor}">${p.score}점</span>
               </div>
-
-              <!-- Badges -->
-              <div class="flex flex-wrap gap-1 mb-3">
-                ${p.stack.map(s => `<span class="px-2 py-0.5 rounded text-[10px] bg-slate-800/80 text-slate-300 border border-white/5">${s}</span>`).join('')}
+              <div class="flex flex-wrap gap-1 mb-2">
+                ${p.stack.map(s => `<span class="px-1.5 py-0.2 rounded text-[9px] bg-slate-800 text-slate-300">${s}</span>`).join('')}
               </div>
-
-              <!-- Git & AI Status -->
-              <div class="bg-black/40 p-2.5 rounded-xl border border-white/[0.04] text-[11px] space-y-1">
-                <div class="flex justify-between text-slate-400">
-                  <span>Git:</span>
-                  <span class="mono text-slate-200 truncate max-w-[160px]">${p.git.branch || 'None'} ${p.git.dirty ? '⚠️' : '✓'}</span>
-                </div>
-                <div class="flex justify-between text-slate-400">
-                  <span>AI:</span>
-                  <span class="text-indigo-300 truncate max-w-[160px]">${p.ai_configs.join(', ') || '설정 없음'}</span>
-                </div>
+              <div class="bg-black/40 p-2 rounded-xl text-[10px] space-y-0.5 text-slate-400">
+                <div>Git: <strong class="text-slate-200 mono">${p.git.branch || 'None'} ${p.git.dirty ? '⚠️' : '✓'}</strong></div>
+                <div>AI: <span class="text-indigo-300">${p.ai_configs.join(', ') || '설정 없음'}</span></div>
               </div>
             </div>
-
-            <!-- Card Footer: Archive Toggle & Harness Action -->
-            <div class="mt-4 pt-2.5 border-t border-white/[0.06] flex items-center justify-between text-xs">
-              <button onclick="toggleArchive('${p.name}', ${!p.is_archived})" class="text-[11px] text-slate-400 hover:text-white transition flex items-center gap-1">
-                ${p.is_archived ? '<span>✨ 복원</span>' : '<span>📦 보관하기</span>'}
+            <div class="mt-3 pt-2 border-t border-white/[0.06] flex justify-between items-center text-xs">
+              <button onclick="toggleArchive('${p.name}', ${!p.is_archived})" class="text-[10px] text-slate-400 hover:text-white transition">
+                ${p.is_archived ? '✨ 복원' : '📦 보관'}
               </button>
-              ${p.score < 100 ? `
-                <button onclick="injectHarness('${p.path}', '${p.category}')" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm">
-                  하네스 주입
-                </button>
-              ` : `
-                <span class="text-emerald-400 font-semibold text-[10px] flex items-center gap-1">
-                  <span>✓</span> 완비
-                </span>
-              `}
+              ${p.score < 100 ? `<button onclick="injectHarness('${p.path}', '${p.category}')" class="px-2 py-0.5 bg-indigo-600 rounded text-[10px] font-bold text-white">하네스 주입</button>` : `<span class="text-emerald-400 font-semibold text-[10px]">✓ 완비</span>`}
             </div>
           </div>
         `;
@@ -671,225 +481,167 @@
     }
 
     async function toggleArchive(name, shouldArchive) {
-      try {
-        await fetch('/api/projects/toggle-archive', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, archived: shouldArchive })
-        });
-        loadProjects();
-      } catch (err) {
-        alert('보관 토글 실패: ' + err);
-      }
+      await fetch('/api/projects/toggle-archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, archived: shouldArchive })
+      });
+      loadProjects();
     }
 
     async function injectHarness(path, category) {
       if (!confirm(`'${path}'에 하네스(${category})를 적용하시겠습니까?`)) return;
+      await fetch('/api/projects/init-harness', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path, template: category })
+      });
+      loadProjects();
+    }
+
+    // Skills Marketplace
+    async function loadSkills() {
       try {
-        const res = await fetch('/api/projects/init-harness', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path, template: category })
-        });
+        const res = await fetch('/api/skills/catalog');
         const data = await res.json();
-        alert(data.message || '완료되었습니다.');
-        loadProjects();
-      } catch (err) {
-        alert('오류: ' + err);
-      }
+        skillsList = data.skills || [];
+        renderSkills(skillsList);
+      } catch (e) { console.error(e); }
     }
 
-    // -------------------------------------------------------------
-    // Quota Logic
-    // -------------------------------------------------------------
-    async function loadQuota() {
-      try {
-        const res = await fetch('/api/tokens');
-        quotaData = await res.json();
-        updateQuotaView();
-      } catch (e) {
-        console.error('Failed to load quota:', e);
-      }
+    function renderSkills(list) {
+      const container = document.getElementById('skills-grid');
+      container.innerHTML = list.map(s => `
+        <div class="glass-card p-4 rounded-2xl flex flex-col justify-between space-y-3 hover:border-white/20 transition">
+          <div>
+            <div class="flex justify-between items-start mb-1">
+              <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-medium">${s.category}</span>
+              <div class="text-amber-400 text-xs font-bold flex items-center gap-1">
+                <span>★ ${s.rating}</span>
+                <span class="text-slate-500 text-[10px]">(${s.reviews_count})</span>
+              </div>
+            </div>
+            <h3 class="font-bold text-sm text-white">${s.name}</h3>
+            
+            <div class="mt-2 space-y-1.5 text-xs">
+              <div class="p-2 rounded bg-emerald-950/30 border border-emerald-500/20 text-emerald-300 text-[11px]">
+                <strong>👍 장점:</strong> ${s.pros}
+              </div>
+              <div class="p-2 rounded bg-rose-950/20 border border-rose-500/20 text-rose-300 text-[11px]">
+                <strong>⚠️ 주의:</strong> ${s.cons}
+              </div>
+              <p class="text-slate-400 text-[11px] italic pt-1">"${s.verdict}"</p>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-white/[0.06] flex items-center justify-between">
+            <div class="flex gap-1 text-[9px] text-slate-400">
+              ${s.compatible.map(c => `<span class="px-1.5 py-0.5 rounded bg-slate-800">${c}</span>`).join('')}
+            </div>
+            <button onclick="trySkill('${s.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] shadow-sm">
+              체험/설치
+            </button>
+          </div>
+        </div>
+      `).join('');
     }
 
-    function updateQuotaView() {
-      const plan = document.getElementById('plan-tier-select').value;
-      const c = quotaData.claude || {};
-      const l5 = c.last_5h || {};
-      const l7 = c.last_7d || {};
-
-      const pct5h = plan === 'pro' ? (l5.pct_pro || 79.1) : (l5.pct_team || 39.6);
-      const pct7d = plan === 'pro' ? (l7.pct_pro || 56.5) : (l7.pct_team || 18.8);
-
-      document.getElementById('gauge-5h-pct').innerText = `${pct5h}%`;
-      document.getElementById('gauge-5h-circle').setAttribute('stroke-dasharray', `${pct5h}, 100`);
-      document.getElementById('val-5h-tokens').innerText = `${(l5.tokens || 237306).toLocaleString()} tokens`;
-      document.getElementById('val-5h-calls').innerText = `${l5.calls || 365} calls`;
-
-      document.getElementById('gauge-7d-pct').innerText = `${pct7d}%`;
-      document.getElementById('gauge-7d-circle').setAttribute('stroke-dasharray', `${pct7d}, 100`);
-      document.getElementById('val-7d-tokens').innerText = `${(l7.tokens || 2827112).toLocaleString()} tokens`;
-      document.getElementById('val-7d-calls').innerText = `${l7.calls || 3719} calls`;
+    function filterSkills(cat) {
+      if (cat === 'all') renderSkills(skillsList);
+      else renderSkills(skillsList.filter(s => s.category === cat));
     }
 
-    // -------------------------------------------------------------
-    // Subagents Logic
-    // -------------------------------------------------------------
+    function trySkill(id) {
+      alert(`스킬 '${id}'를 현재 환경에 활성화했습니다.\n터미널 실행 커맨드:\npython3 tools/harness-cli.py install-skill ${id}`);
+    }
+
+    // Subagents
     async function loadSubagents() {
       try {
         const res = await fetch('/api/subagents');
         const data = await res.json();
-        subagentsData = data.subagents || [];
-        renderSubagents();
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    function renderSubagents() {
-      const el = document.getElementById('subagents-list');
-      el.innerHTML = subagentsData.map(s => {
-        const isRunning = s.state === 'RUNNING';
-        const isKilled = s.state === 'KILLED';
-        const statusColor = isRunning ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : (isKilled ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' : 'text-slate-300 bg-slate-800');
-
-        return `
-          <div class="p-3 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between text-xs">
+        subagentsList = data.subagents || [];
+        const el = document.getElementById('subagents-list');
+        el.innerHTML = subagentsList.map(s => `
+          <div class="p-2.5 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between text-xs">
             <div>
-              <div class="flex items-center gap-2 mb-0.5">
-                <span class="mono text-slate-400 font-bold text-[11px]">${s.id}</span>
-                <span class="font-bold text-white">${s.role}</span>
-                <span class="text-[10px] text-indigo-300 px-1.5 py-0.2 rounded bg-indigo-500/10">@${s.project}</span>
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span class="mono text-slate-400 font-bold text-[10px]">${s.id}</span>
+                <strong class="text-white text-[11px]">${s.role}</strong>
+                <span class="text-[9px] px-1 py-0.2 rounded bg-indigo-500/10 text-indigo-300">@${s.project}</span>
               </div>
-              <p class="text-slate-400 text-[11px] truncate max-w-[340px]">${s.prompt}</p>
+              <div class="text-slate-400 text-[10px] truncate max-w-[280px]">${s.prompt}</div>
             </div>
-            <div class="flex items-center gap-3">
-              <span class="px-2 py-0.5 rounded text-[10px] font-mono border ${statusColor}">${s.state}</span>
-              ${isRunning ? `<button onclick="killSubagent('${s.id}')" class="px-2 py-0.5 rounded bg-rose-950/60 hover:bg-rose-900 border border-rose-500/30 text-rose-300 text-[10px] mono">Kill</button>` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function handleDispatchSubagent(e) {
-      e.preventDefault();
-      const role = document.getElementById('sub-role').value;
-      const project = document.getElementById('sub-proj').value;
-      const prompt = document.getElementById('sub-prompt').value;
-      try {
-        await fetch('/api/subagents/dispatch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role, project, prompt })
-        });
-        document.getElementById('sub-role').value = '';
-        document.getElementById('sub-prompt').value = '';
-        loadSubagents();
-      } catch (err) {
-        alert('발주 실패: ' + err);
-      }
-    }
-
-    async function killSubagent(id) {
-      if (!confirm(`서브에이전트 ${id}를 강제 종료하시겠습니까?`)) return;
-      try {
-        await fetch('/api/subagents/kill', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id })
-        });
-        loadSubagents();
-      } catch (err) {
-        alert(err);
-      }
-    }
-
-    // -------------------------------------------------------------
-    // Docs & Security
-    // -------------------------------------------------------------
-    async function loadDocs() {
-      try {
-        const res = await fetch('/api/docs');
-        const data = await res.json();
-        const docs = data.docs || [];
-        document.getElementById('docs-count-pill').innerText = `${docs.length} docs`;
-
-        const groups = {};
-        docs.forEach(d => {
-          if (!groups[d.folder]) groups[d.folder] = [];
-          groups[d.folder].push(d);
-        });
-
-        const tree = document.getElementById('docs-tree-container');
-        tree.innerHTML = Object.keys(groups).map(folder => `
-          <div>
-            <div class="text-[10px] uppercase font-bold text-slate-500 mb-1 tracking-wider">${folder}</div>
-            <div class="space-y-1 pl-2 border-l border-white/10">
-              ${groups[folder].map(d => `
-                <button onclick="fetchDocContent('${d.path}')" class="w-full text-left px-2 py-1 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition truncate block">
-                  📄 ${d.title}
-                </button>
-              `).join('')}
-            </div>
+            <span class="px-2 py-0.5 rounded text-[9px] mono ${s.state === 'RUNNING' ? 'text-emerald-300 bg-emerald-500/10' : 'text-slate-300 bg-slate-800'}">${s.state}</span>
           </div>
         `).join('');
-
-        if (docs.length) fetchDocContent(docs[0].path);
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) { console.error(e); }
     }
 
-    async function fetchDocContent(path) {
-      document.getElementById('doc-active-title').innerText = path;
-      try {
-        const res = await fetch(`/api/docs/content?path=${encodeURIComponent(path)}`);
-        const data = await res.json();
-        document.getElementById('doc-content-body').innerText = data.content || data.error;
-      } catch (e) {
-        document.getElementById('doc-content-body').innerText = '오류: ' + e;
-      }
+    async function dispatchSubagent(e) {
+      e.preventDefault();
+      const r = document.getElementById('sub-role').value;
+      const p = document.getElementById('sub-proj').value;
+      const pr = document.getElementById('sub-prompt').value;
+      await fetch('/api/subagents/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: r, project: p, prompt: pr })
+      });
+      document.getElementById('sub-role').value = '';
+      document.getElementById('sub-prompt').value = '';
+      loadSubagents();
+    }
+
+    async function handleWiz(e) {
+      e.preventDefault();
+      const n = document.getElementById('wiz-in').value;
+      const t = document.getElementById('wiz-sel').value;
+      await fetch('/api/projects/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: n, template: t, init_git: true })
+      });
+      document.getElementById('wiz-done').classList.remove('hidden');
+      document.getElementById('wiz-cmd').innerText = `cd /Users/hhhk/dev/${n}\ngh repo create hhhkdev/${n} --private --source=. --push`;
+      loadProjects();
+    }
+
+    // Docs
+    async function loadDocs() {
+      const res = await fetch('/api/docs');
+      const data = await res.json();
+      const docs = data.docs || [];
+      const groups = {};
+      docs.forEach(d => {
+        if (!groups[d.folder]) groups[d.folder] = [];
+        groups[d.folder].push(d);
+      });
+      const el = document.getElementById('docs-tree-container');
+      el.innerHTML = Object.keys(groups).map(folder => `
+        <div>
+          <div class="text-[10px] uppercase font-bold text-slate-500 mb-1">${folder}</div>
+          <div class="space-y-1 pl-2 border-l border-white/10">
+            ${groups[folder].map(d => `<button onclick="viewDoc('${d.path}')" class="w-full text-left p-1 rounded hover:bg-slate-800 text-slate-300 truncate block">📄 ${d.title}</button>`).join('')}
+          </div>
+        </div>
+      `).join('');
+      if (docs.length) viewDoc(docs[0].path);
+    }
+
+    async function viewDoc(p) {
+      document.getElementById('doc-active-title').innerText = p;
+      const res = await fetch(`/api/docs/content?path=${encodeURIComponent(p)}`);
+      const data = await res.json();
+      document.getElementById('doc-content-body').innerText = data.content || data.error;
     }
 
     function copyDocContent() {
       navigator.clipboard.writeText(document.getElementById('doc-content-body').innerText);
-      alert('마크다운 본문이 복사되었습니다.');
+      alert('복사되었습니다.');
     }
 
-    function runSecTest() {
-      document.getElementById('sec-test-result').innerHTML = `
-        <span class="text-amber-400">⚡ Attack Test: '../../.ssh/id_rsa'</span> → 
-        <span class="text-emerald-400 font-bold">🛡️ BLOCKED (realpath traversal intercepted)</span>
-      `;
-    }
-
-    async function handleCreateProj(e) {
-      e.preventDefault();
-      const name = document.getElementById('wiz-name').value.trim();
-      const template = document.querySelector('input[name="wiz-tpl"]:checked').value;
-      const initGit = document.getElementById('wiz-git').checked;
-
-      try {
-        const res = await fetch('/api/projects/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, template, init_git: initGit })
-        });
-        const data = await res.json();
-        if (data.error) return alert(data.error);
-
-        document.getElementById('wiz-msg').innerText = '생성 완료!';
-        document.getElementById('wiz-result').classList.remove('hidden');
-        document.getElementById('wiz-cmd').innerText = 
-          `cd /Users/hhhk/dev/${name}\ngh repo create hhhkdev/${name} --private --source=. --push\n# 또는:\ngit remote add origin https://github.com/hhhkdev/${name}.git\ngit push -u origin main`;
-        loadProjects();
-      } catch (err) {
-        alert(err);
-      }
-    }
-
-    // Init
+    // Boot
     loadProjects();
   </script>
 </body>
