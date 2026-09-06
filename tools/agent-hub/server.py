@@ -18,6 +18,7 @@ import json
 import glob
 import shutil
 import urllib.parse
+import urllib.request
 import subprocess
 import re
 import sqlite3
@@ -508,74 +509,76 @@ def parse_token_metrics():
         g["resets_in_minutes"] = max(0, int((g_last_ts + 5 * 3600 - now_s) / 60))
     g["status"] = "한도 도달" if g["last_5h"]["pct_pro"] >= 100 else ("주의" if g["last_5h"]["pct_pro"] >= 75 else "정상")
 
-    # 3. Codex: Parse ~/.codex/thread_history_1.sqlite and detect actual limits
-    codex_db = os.path.expanduser("~/.codex/thread_history_1.sqlite")
+    # 3. GPT / Codex: Query official ChatGPT backend-api/wham/usage with Bearer token for 100% accuracy
+    codex_auth = os.path.expanduser("~/.codex/auth.json")
     o = stats["gpt"]
-    o_limit_hit = False
-    if os.path.exists(codex_db):
-        try:
-            conn = sqlite3.connect(f"file:{codex_db}?mode=ro", uri=True)
-            cur = conn.cursor()
-            cur.execute("SELECT count(*) FROM thread_turns WHERE started_at >= ?;", (now_s - 5 * 3600,))
-            o_5h_turns = cur.fetchone()[0]
-            cur.execute("SELECT count(*) FROM thread_turns WHERE started_at >= ?;", (now_s - 7 * 86400,))
-            o_7d_turns = cur.fetchone()[0]
-            cur.execute("SELECT count(*) FROM thread_items WHERE created_at_ms >= ?;", (now_ms - 5 * 3600 * 1000,))
-            o_5h_items = cur.fetchone()[0]
-            cur.execute("SELECT count(*) FROM thread_items WHERE created_at_ms >= ?;", (now_ms - 7 * 86400 * 1000,))
-            o_7d_items = cur.fetchone()[0]
-            cur.execute("SELECT started_at, error_json FROM thread_turns WHERE (error_json LIKE '%limit%' OR error_json LIKE '%usage%') AND started_at >= ? ORDER BY started_at DESC LIMIT 1;", (now_s - 5 * 3600,))
-            err_row = cur.fetchone()
-            if err_row:
-                st, err_j = err_row
-                try:
-                    data = json.loads(err_j)
-                    msg = data.get("message", "")
-                    match = re.search(r"try again at (\d+):(\d+)\s*(AM|PM)", msg, re.IGNORECASE)
-                    if match:
-                        h = int(match.group(1))
-                        m = int(match.group(2))
-                        meridiem = match.group(3).upper()
-                        if meridiem == "PM" and h < 12: h += 12
-                        if meridiem == "AM" and h == 12: h = 0
-                        err_dt = datetime.fromtimestamp(st)
-                        reset_dt = err_dt.replace(hour=h, minute=m, second=0, microsecond=0)
-                        if reset_dt < err_dt:
-                            reset_dt += timedelta(days=1)
-                        reset_ts = int(reset_dt.timestamp())
-                        if now_s < reset_ts:
-                            o_limit_hit = True
-                            o["resets_in_minutes"] = max(1, int((reset_ts - now_s) / 60))
-                        else:
-                            o_limit_hit = False
-                            o["resets_in_minutes"] = 0
-                    else:
-                        if now_s < st + 3 * 3600:
-                            o_limit_hit = True
-                            o["resets_in_minutes"] = max(1, int((st + 3 * 3600 - now_s) / 60))
-                except Exception:
-                    pass
+    wham_success = False
 
-            o["last_5h"]["calls"] = o_5h_turns
-            computed_5h_tok = o_5h_turns * 5000 + o_5h_items * 350
-            if o_limit_hit:
-                o["last_5h"]["tokens"] = 500_000
-                o["last_5h"]["pct_pro"] = 100.0
-                o["last_5h"]["pct_team"] = 50.0
-                o["status"] = "한도 도달"
-            else:
+    if os.path.exists(codex_auth):
+        try:
+            with open(codex_auth, "r", encoding="utf-8") as af:
+                auth_d = json.load(af)
+            access_tok = auth_d.get("tokens", {}).get("access_token")
+            if access_tok:
+                wham_url = "https://chatgpt.com/backend-api/wham/usage"
+                req = urllib.request.Request(wham_url, headers={"Authorization": f"Bearer {access_tok}", "User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=2.5) as resp:
+                    if resp.status == 200:
+                        wham_data = json.loads(resp.read().decode("utf-8"))
+                        rate_lim = wham_data.get("rate_limit", {})
+                        pw = rate_lim.get("primary_window", {})
+                        sw = rate_lim.get("secondary_window", {})
+                        
+                        used_5h = float(pw.get("used_percent", 0))
+                        used_7d = float(sw.get("used_percent", 0)) if sw else 0.0
+                        reset_sec_5h = int(pw.get("reset_after_seconds", 0))
+                        
+                        o["last_5h"]["pct_pro"] = round(used_5h, 1)
+                        o["last_5h"]["pct_team"] = round(used_5h * 0.4, 1)
+                        o["last_5h"]["tokens"] = int(500_000 * (used_5h / 100.0))
+                        o["resets_in_minutes"] = max(0, int(reset_sec_5h / 60))
+                        
+                        o["last_7d"]["pct_pro"] = round(used_7d, 1)
+                        o["last_7d"]["pct_team"] = round(used_7d * 0.4, 1)
+                        o["last_7d"]["tokens"] = int(5_000_000 * (used_7d / 100.0))
+                        
+                        is_lim = rate_lim.get("limit_reached", False) or used_5h >= 100
+                        o["status"] = "한도 도달" if is_lim else ("주의" if used_5h >= 75 else "정상")
+                        wham_success = True
+        except Exception:
+            pass
+
+    # Fallback to local DB SQLite if wham API is unreachable
+    if not wham_success:
+        codex_db = os.path.expanduser("~/.codex/thread_history_1.sqlite")
+        o_limit_hit = False
+        if os.path.exists(codex_db):
+            try:
+                conn = sqlite3.connect(f"file:{codex_db}?mode=ro", uri=True)
+                cur = conn.cursor()
+                cur.execute("SELECT count(*) FROM thread_turns WHERE started_at >= ?;", (now_s - 5 * 3600,))
+                o_5h_turns = cur.fetchone()[0]
+                cur.execute("SELECT count(*) FROM thread_turns WHERE started_at >= ?;", (now_s - 7 * 86400,))
+                o_7d_turns = cur.fetchone()[0]
+                cur.execute("SELECT count(*) FROM thread_items WHERE created_at_ms >= ?;", (now_ms - 5 * 3600 * 1000,))
+                o_5h_items = cur.fetchone()[0]
+                cur.execute("SELECT count(*) FROM thread_items WHERE created_at_ms >= ?;", (now_ms - 7 * 86400 * 1000,))
+                o_7d_items = cur.fetchone()[0]
+
+                o["last_5h"]["calls"] = o_5h_turns
+                computed_5h_tok = o_5h_turns * 5000 + o_5h_items * 350
                 o["last_5h"]["tokens"] = computed_5h_tok
                 o["last_5h"]["pct_pro"] = min(100.0, round((computed_5h_tok / 500_000) * 100, 1))
                 o["last_5h"]["pct_team"] = min(100.0, round((computed_5h_tok / 1_500_000) * 100, 1))
-                o["status"] = "한도 도달" if o["last_5h"]["pct_pro"] >= 100 else ("주의" if o["last_5h"]["pct_pro"] >= 75 else "정상")
+                o["status"] = "주의" if o["last_5h"]["pct_pro"] >= 75 else "정상"
 
-            o["last_7d"]["calls"] = o_7d_turns
-            computed_7d_tok = o_7d_turns * 12000 + o_7d_items * 400
-            o["last_7d"]["tokens"] = computed_7d_tok
-            o["last_7d"]["pct_pro"] = min(100.0, round((computed_7d_tok / 5_000_000) * 100, 1))
-            o["last_7d"]["pct_team"] = min(100.0, round((computed_7d_tok / 15_000_000) * 100, 1))
-        except Exception:
-            pass
+                o["last_7d"]["calls"] = o_7d_turns
+                computed_7d_tok = o_7d_turns * 12000 + o_7d_items * 400
+                o["last_7d"]["tokens"] = computed_7d_tok
+                o["last_7d"]["pct_pro"] = min(100.0, round((computed_7d_tok / 5_000_000) * 100, 1))
+                o["last_7d"]["pct_team"] = min(100.0, round((computed_7d_tok / 15_000_000) * 100, 1))
+            except Exception:
+                pass
 
     for k in stats["by_project"]:
         if "teumteum" in k:

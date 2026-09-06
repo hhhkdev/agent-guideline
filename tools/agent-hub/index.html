@@ -39,10 +39,27 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+    /* Custom Select & Form Controls */
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 1rem;
+      padding-right: 2.25rem !important;
+      cursor: pointer;
+    }
+    select option {
+      background: #090d16;
+      color: #f1f5f9;
+      padding: 0.5rem;
+    }
+
     /* Mobile UX Enhancements */
     @media (max-width: 640px) {
-      .tab-btn { padding: 0.45rem 0.65rem; min-height: 34px; }
-      input, select, textarea, button { font-size: 14px !important; } /* prevent iOS Safari zoom */
+      .tab-btn { padding: 0.4rem 0.6rem; min-height: 36px; }
+      input, select, textarea, button { font-size: 14px !important; min-height: 40px; }
       #floating-hud-widget { bottom: 12px; right: 12px; }
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -75,18 +92,18 @@
   <header class="sticky top-0 z-50 glass-panel border-b border-white/[0.06] px-3 sm:px-6 py-2 transition-all">
     <div class="max-w-[1750px] mx-auto flex items-center justify-between gap-3">
       
-      <!-- Segmented Navigation (Clean & Compact) -->
-      <nav class="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-white/[0.06] overflow-x-auto no-scrollbar">
-        <button onclick="switchTab('projects')" id="tab-btn-projects" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 shadow-sm">
+      <!-- Segmented Navigation (Clean, Scrollable & Mobile-Friendly) -->
+      <nav class="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-white/[0.06] overflow-x-auto no-scrollbar w-full sm:w-auto justify-start sm:justify-center">
+        <button onclick="switchTab('projects')" id="tab-btn-projects" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 shadow-sm">
           <span>📂</span> <span>프로젝트</span>
         </button>
-        <button onclick="switchTab('quota')" id="tab-btn-quota" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+        <button onclick="switchTab('quota')" id="tab-btn-quota" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
           <span>⚡</span> <span>AI 쿼터</span>
         </button>
-        <button onclick="switchTab('ports')" id="tab-btn-ports" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+        <button onclick="switchTab('ports')" id="tab-btn-ports" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
           <span>🔌</span> <span>포트</span>
         </button>
-        <button onclick="switchTab('subagents')" id="tab-btn-subagents" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+        <button onclick="switchTab('subagents')" id="tab-btn-subagents" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
           <span>🤖</span> <span>에이전트</span>
         </button>
         <button onclick="switchTab('skills')" id="tab-btn-skills" class="tab-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-300 transition flex items-center gap-1 whitespace-nowrap flex-shrink-0">
@@ -100,25 +117,9 @@
         </button>
       </nav>
 
-      <!-- Minimal Colored Dot Quota Status (Click to open HUD) -->
-      <div class="flex items-center gap-2 flex-shrink-0">
-        <button onclick="toggleFloatingHUD()" title="단축키 'Q' 또는 클릭하여 상세 보기" class="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 border border-white/[0.08] text-xs font-mono flex items-center gap-2.5 transition shadow-sm cursor-pointer">
-          <span class="flex items-center gap-1 text-[11px]">
-            <span class="w-2 h-2 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
-            <span id="nav-c-val" class="font-bold text-amber-300">--%</span>
-          </span>
-          <span class="text-slate-600">·</span>
-          <span class="flex items-center gap-1 text-[11px]">
-            <span class="w-2 h-2 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50"></span>
-            <span id="nav-g-val" class="font-bold text-blue-300">--%</span>
-          </span>
-          <span class="text-slate-600">·</span>
-          <span class="flex items-center gap-1 text-[11px]">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></span>
-            <span id="nav-o-val" class="font-bold text-emerald-300">--%</span>
-          </span>
-          <kbd class="hidden sm:inline px-1 py-0.2 text-[9px] bg-slate-800 border border-white/10 rounded text-slate-400 ml-1">Q</kbd>
-        </button>
+      <!-- Quick Shortcut Badge -->
+      <div class="hidden sm:flex items-center gap-2 flex-shrink-0 text-[11px] text-slate-500 mono">
+        <span>탭 전환: <kbd class="px-1.5 py-0.5 bg-slate-900 border border-white/10 rounded text-slate-400">1</kbd> ~ <kbd class="px-1.5 py-0.5 bg-slate-900 border border-white/10 rounded text-slate-400">6</kbd></span>
       </div>
     </div>
   </header>
@@ -828,82 +829,55 @@
             <!-- Header: Model Info + Status Badge -->
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-2.5 min-w-0">
-                <span class="w-3 h-3 rounded-full ${m.bar} shadow-sm shadow-${m.color}-500/50 flex-shrink-0"></span>
+                <span class="w-2.5 h-2.5 rounded-full ${m.bar} shadow-sm shadow-${m.color}-500/50 flex-shrink-0"></span>
                 <div class="truncate">
-                  <div class="flex items-center gap-1.5 truncate">
-                    <h3 class="font-bold text-sm sm:text-base text-white truncate">${m.obj.name}</h3>
-                    ${m.obj.model_slug ? `<span class="px-1.5 py-0.2 rounded bg-white/5 border border-white/10 text-[9px] text-indigo-300 mono flex-shrink-0">${m.obj.model_slug}</span>` : ''}
-                  </div>
+                  <h3 class="font-bold text-sm sm:text-base text-white truncate">${m.obj.name}</h3>
                   <div class="text-[11px] text-slate-400 truncate">${m.obj.tier_label}</div>
                 </div>
               </div>
-              <div class="flex-shrink-0">
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                ${m.key === 'gpt' ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Official API</span>' : ''}
                 ${statusBadge}
               </div>
             </div>
 
-            <!-- Hero Metric Section: Big Percent + Circular Gauge + Stats -->
-            <div class="bg-black/40 rounded-xl p-4 border border-white/5 space-y-3">
-              <div class="flex items-center justify-between gap-3">
-                <div class="space-y-0.5 min-w-0">
+            <!-- Main Metric Section -->
+            <div class="bg-black/30 rounded-xl p-4 border border-white/5 space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
                   <span class="text-[11px] font-medium text-slate-400 block">5시간 롤링 소진율</span>
-                  <div class="flex items-baseline gap-1.5">
+                  <div class="flex items-baseline gap-1.5 mt-0.5">
                     <span class="text-3xl font-black mono text-white tracking-tight">${m.obj.last_5h.pct_pro}%</span>
-                    <span class="text-xs text-slate-400 font-mono">/ 100%</span>
-                  </div>
-                  <div class="text-[11px] mono text-slate-400 truncate">
-                    ${m.obj.last_5h.tokens.toLocaleString()} <span class="text-slate-600">/</span> ${m.obj.last_5h.limit}
+                    <span class="text-xs text-slate-500 font-mono">/ 100%</span>
                   </div>
                 </div>
-
-                <!-- Compact Circular Gauge -->
-                <div class="relative w-16 h-16 flex-shrink-0 flex items-center justify-center">
-                  <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path class="${m.fill} transition-all duration-700" stroke-width="3.5" stroke-dasharray="${Math.min(100, m.obj.last_5h.pct_pro)}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  </svg>
+                <div class="text-right">
+                  <span class="text-[10px] text-slate-400 block">리셋 예상</span>
+                  <span class="text-xs font-bold mono ${resetColor}">${resetTxt}</span>
                 </div>
               </div>
 
-              <!-- Stat Grid: 2 Columns with no awkward wrapping -->
-              <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-white/5 text-[11px]">
-                <div class="bg-slate-900/60 p-2 rounded-lg border border-white/5">
-                  <span class="text-slate-400 block text-[10px]">호출 횟수</span>
-                  <span class="mono font-bold text-slate-200 text-xs">${m.obj.last_5h.calls.toLocaleString()}회</span>
-                </div>
-                <div class="bg-slate-900/60 p-2 rounded-lg border border-white/5">
-                  <span class="text-slate-400 block text-[10px]">롤링 리셋</span>
-                  <span class="mono font-bold ${resetColor} text-xs truncate block">${resetTxt}</span>
-                </div>
+              <!-- Progress Bar -->
+              <div class="w-full bg-slate-800/80 h-2 rounded-full overflow-hidden">
+                <div class="${m.bar} h-full rounded-full transition-all duration-700" style="width: ${Math.min(100, m.obj.last_5h.pct_pro)}%"></div>
               </div>
             </div>
 
-            <!-- Tier Breakdown Comparison -->
-            <div class="grid grid-cols-2 gap-2 text-[11px]">
-              <div class="p-2 rounded-xl bg-slate-900/40 border border-white/5">
-                <span class="text-slate-400 text-[10px] block">Pro/Plus 플랜</span>
-                <div class="mono font-bold text-white text-xs">${m.obj.last_5h.pct_pro}%</div>
+            <!-- Weekly Quota Bar -->
+            <div class="space-y-1.5 pt-1">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-400 text-[11px]">주간 누적 소진율</span>
+                <span class="mono text-white font-bold text-[11px]">${m.obj.last_7d.pct_pro}%</span>
               </div>
-              <div class="p-2 rounded-xl bg-slate-900/40 border border-white/5">
-                <span class="text-slate-400 text-[10px] block">Team/Org 플랜</span>
-                <div class="mono font-bold text-slate-300 text-xs">${m.obj.last_5h.pct_team}%</div>
+              <div class="w-full bg-slate-800/60 h-1.5 rounded-full overflow-hidden">
+                <div class="${m.bar} h-full rounded-full transition-all duration-700" style="width: ${Math.min(100, m.obj.last_7d.pct_pro)}%"></div>
               </div>
             </div>
           </div>
 
-          <!-- 7-Day Weekly Limit Bar Block -->
-          <div class="space-y-2 pt-2 border-t border-white/5">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-300 font-medium">주간 누적</span>
-              <span class="mono text-white font-bold">${m.obj.last_7d.pct_pro}% <span class="text-slate-500 font-normal">(${((m.obj.last_7d.tokens||0)/1000000).toFixed(2)}M / ${m.obj.last_7d.limit})</span></span>
-            </div>
-            <div class="w-full bg-slate-800/80 h-2 rounded-full overflow-hidden">
-              <div class="${m.bar} h-full rounded-full transition-all duration-700" style="width: ${Math.min(100, m.obj.last_7d.pct_pro)}%"></div>
-            </div>
-            <div class="flex justify-between items-center text-[10px] text-slate-500">
-              <span>월요일 00:00 UTC 리셋</span>
-              <span class="mono">Team ${m.obj.last_7d.pct_team}%</span>
-            </div>
+          <div class="pt-2.5 border-t border-white/5 flex justify-between items-center text-[10px] text-slate-500">
+            <span>호출: ${m.obj.last_5h.calls || 0}회</span>
+            <span>Team 기준: ${m.obj.last_5h.pct_team}%</span>
           </div>
         </div>
         `;
