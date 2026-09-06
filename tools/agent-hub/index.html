@@ -172,21 +172,30 @@
     <!-- TAB 2: UNIFIED 3-PROVIDER PLAN QUOTAS                    -->
     <!-- ======================================================== -->
     <section id="tab-quota" class="tab-content hidden space-y-4">
-      <div class="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div>
-          <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-            <span>⏳ 3대 AI 프로바이더 5시간 롤링 & 주간 할당량 (Unified Quota View)</span>
-            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Live Rolling Window</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-0.5">단순 요금 계산이 아닌, 실제 결제 플랜의 5시간 및 주간 소진 한도(Rate Limits)를 모든 모델에 동일한 기준으로 시각화합니다.</p>
+      <div class="glass-panel px-4 py-3 rounded-2xl flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <span class="text-base">⚡</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm sm:text-base font-bold text-white">AI 플랜 쿼터 & 롤링 한도</h2>
+              <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 실시간
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400">5시간 슬라이딩 롤링 소진율 및 주간 리셋 카운트다운</p>
+          </div>
         </div>
-        <div class="text-xs mono text-slate-400 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
-          단축키: <kbd class="px-1.5 py-0.5 bg-slate-800 text-indigo-300 rounded font-bold">Q</kbd> 또는 <kbd class="px-1.5 py-0.5 bg-slate-800 text-indigo-300 rounded font-bold">2</kbd>
+        <div class="flex items-center gap-2">
+          <button onclick="loadQuota()" title="새로고침" class="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 text-xs transition">🔄</button>
+          <div class="hidden sm:flex items-center text-[11px] mono text-slate-400 bg-black/40 px-2.5 py-1 rounded-xl border border-white/5 gap-1.5">
+            <span>단축키</span>
+            <kbd class="px-1.5 py-0.5 bg-slate-800 text-indigo-300 rounded font-bold text-[10px]">Q</kbd>
+          </div>
         </div>
       </div>
 
       <!-- 3 Providers Cards (Standardized 5h & Weekly) -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="quota-cards-container">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 xl:gap-5" id="quota-cards-container">
         <!-- Rendered via JS for live sync -->
       </div>
     </section>
@@ -195,20 +204,21 @@
     <!-- TAB 3: DYNAMIC SKILLS MARKETPLACE & WEBHOOK INGESTION    -->
     <!-- ======================================================== -->
     <section id="tab-skills" class="tab-content hidden space-y-4">
-      <div class="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="glass-panel px-4 py-3 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-            <span>⭐ 검증된 AI 스킬 카탈로그 & 동적 확장</span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">Curated & Dynamic</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-0.5">필요한 스킬을 직접 검색/등록하거나, 웹훅(/api/skills/webhook)을 통해 크롤러에서 자동으로 긁어와 축적할 수 있습니다.</p>
+          <div class="flex items-center gap-2">
+            <span class="text-base">⭐</span>
+            <h2 class="text-sm sm:text-base font-bold text-white">AI 스킬 카탈로그</h2>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono">Curated</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">프로젝트 맞춤형 AI 스킬 검색 및 원클릭 적용</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="openAddSkillModal()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-md">
-            <span>+</span> <span>신규 스킬 직접 등록</span>
+            <span>+</span> <span>스킬 직접 등록</span>
           </button>
           <button onclick="showWebhookGuide()" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 text-xs transition">
-            🔌 웹훅 API 안내
+            🔌 웹훅 API
           </button>
         </div>
       </div>
@@ -231,17 +241,18 @@
     <!-- TAB 4: VISUAL SUBAGENT ORCHESTRATION PIPELINE            -->
     <!-- ======================================================== -->
     <section id="tab-subagents" class="tab-content hidden space-y-4">
-      <div class="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="glass-panel px-4 py-3 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-            <span>🤖 서브에이전트 시각적 오케스트레이션 & 파이프라인</span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Live DAG Controller</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-0.5">마스터 에이전트와 도메인별 서브에이전트의 위임 관계(Hierarchy Tree)를 시각적으로 확인하고 직접 발주 및 중단할 수 있습니다.</p>
+          <div class="flex items-center gap-2">
+            <span class="text-base">🤖</span>
+            <h2 class="text-sm sm:text-base font-bold text-white">서브에이전트 오케스트레이션</h2>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">Hierarchy DAG</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">에이전트 계층 트리 및 작업 위임 파이프라인 관리</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="killAllSubagents()" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition">
-            🛑 전체 에이전트 일괄 회수 (Kill All)
+            🛑 전체 에이전트 회수 (Kill All)
           </button>
         </div>
       </div>
@@ -303,13 +314,14 @@
     <!-- TAB: ACTIVE PORTS & PROCESS TERMINATOR                   -->
     <!-- ======================================================== -->
     <section id="tab-ports" class="tab-content hidden space-y-4">
-      <div class="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="glass-panel px-4 py-3 rounded-2xl flex items-center justify-between gap-3">
         <div>
-          <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-            <span>🔌 구동 중인 포트 & 프로세스 실시간 감시</span>
-            <span id="active-ports-count-badge" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">0 Ports</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-0.5">내 맥북에서 어떤 프로젝트가 몇 번 포트에서 돌고 있는지 확인하고, 필요 시 원클릭으로 프로세스를 종료합니다.</p>
+          <div class="flex items-center gap-2">
+            <span class="text-base">🔌</span>
+            <h2 class="text-sm sm:text-base font-bold text-white">개발 포트 모니터</h2>
+            <span id="active-ports-count-badge" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">0 Ports</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">로컬 프로젝트 구동 포트 감시 및 프로세스 제어</p>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="loadPorts()" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 text-xs font-semibold flex items-center gap-1 transition">
@@ -329,11 +341,12 @@
     <section id="tab-github" class="tab-content hidden space-y-4 max-w-4xl mx-auto">
       <div class="glass-panel p-5 rounded-2xl space-y-5 text-xs">
         <div>
-          <h2 class="text-base font-bold text-white flex items-center gap-2">
-            <span>🐙 GitHub 연동 & 1-Click Clone / 생성 매니저</span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Sandbox Isolation</span>
-          </h2>
-          <p class="text-slate-400 mt-1">GitHub 링크만 입력하면 샌드박스 내부(/Users/hhhk/dev)에 안전하게 클론하고 하네스를 자동 구성합니다.</p>
+          <div class="flex items-center gap-2">
+            <span class="text-base">🐙</span>
+            <h2 class="text-base font-bold text-white">GitHub 연동 & 프로젝트 생성</h2>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">Sandbox</span>
+          </div>
+          <p class="text-slate-400 mt-0.5">샌드박스 격리 환경 내 레포지토리 클론 및 하네스 초기화</p>
         </div>
 
         <!-- Mode Tabs: 1. Clone vs 2. Create New Repo -->
@@ -647,17 +660,17 @@
         return `
           <div class="glass-card p-3.5 rounded-2xl flex flex-col justify-between hover:border-white/20 transition group">
             <div>
-              <div class="flex justify-between items-start mb-1.5">
-                <div>
-                  <div class="flex items-center gap-1.5">
-                    <h4 class="font-bold text-sm text-white truncate max-w-[150px]" title="${p.name}">${p.name}</h4>
-                    ${p.family !== 'Other' ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${p.family}</span>` : ''}
+              <div class="flex justify-between items-start gap-2 mb-1.5">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <h4 class="font-bold text-sm text-white truncate" title="${p.name}">${p.name}</h4>
+                    ${p.family !== 'Other' ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex-shrink-0">${p.family}</span>` : ''}
                   </div>
-                  <div class="text-[10px] text-slate-500 mono">${p.category}</div>
+                  <div class="text-[10px] text-slate-500 mono truncate">${p.category}</div>
                 </div>
-                <div class="text-right">
+                <div class="text-right flex-shrink-0">
                   <span class="mono font-bold text-xs ${scoreColor}">${p.score}점</span>
-                  ${isRecent ? `<div class="text-[9px] text-emerald-400 font-bold">🔥 30일 커밋 ${p.git.recent_commits_30d}개</div>` : `<div class="text-[9px] text-slate-500">${p.git.last_commit_relative}</div>`}
+                  ${isRecent ? `<div class="text-[9px] text-emerald-400 font-bold whitespace-nowrap">🔥 30일 커밋 ${p.git.recent_commits_30d}개</div>` : `<div class="text-[9px] text-slate-500 whitespace-nowrap">${p.git.last_commit_relative}</div>`}
                 </div>
               </div>
 
@@ -730,83 +743,101 @@
         { key: 'gpt', color: 'emerald', border: 'border-emerald-500/20', fill: 'text-emerald-400', bar: 'bg-emerald-400', obj: d.gpt }
       ];
 
-      container.innerHTML = models.map(m => `
-        <div class="glass-card p-5 rounded-2xl space-y-4 ${m.border} flex flex-col justify-between hover:border-white/20 transition">
-          <div>
-            <!-- Header with Badge -->
-            <div class="flex justify-between items-start mb-3">
-              <div class="flex items-center gap-2.5">
-                <span class="w-3 h-3 rounded-full ${m.bar} shadow-sm shadow-${m.color}-500/50"></span>
-                <div>
-                  <h3 class="font-bold text-base text-white">${m.obj.name}</h3>
-                  <div class="text-[11px] text-slate-400">${m.obj.tier_label}</div>
+      container.innerHTML = models.map(m => {
+        const isExceeded = m.obj.last_5h.pct_pro >= 100 || m.obj.status === '한도 도달';
+        const isWarning = !isExceeded && m.obj.last_5h.pct_pro >= 75;
+        const statusBadge = isExceeded 
+          ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">한도 도달</span>'
+          : (isWarning 
+              ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">주의</span>'
+              : '<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">정상</span>');
+
+        const resetTxt = m.obj.resets_in_minutes > 0 ? `~${m.obj.resets_in_minutes}분 후` : '즉시 가용';
+        const resetColor = isExceeded ? 'text-rose-300' : (isWarning ? 'text-amber-300' : 'text-slate-200');
+
+        return `
+        <div class="glass-card p-5 rounded-2xl ${m.border} flex flex-col justify-between hover:border-white/20 transition space-y-4">
+          <div class="space-y-3.5">
+            <!-- Header: Model Info + Status Badge -->
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-3 h-3 rounded-full ${m.bar} shadow-sm shadow-${m.color}-500/50 flex-shrink-0"></span>
+                <div class="truncate">
+                  <h3 class="font-bold text-sm sm:text-base text-white truncate">${m.obj.name}</h3>
+                  <div class="text-[11px] text-slate-400 truncate">${m.obj.tier_label}</div>
                 </div>
               </div>
-              <span class="text-[10px] px-2.5 py-1 rounded-full bg-white/5 text-slate-300 border border-white/10 font-mono">Rate Limits</span>
+              <div class="flex-shrink-0">
+                ${statusBadge}
+              </div>
             </div>
 
-            <!-- 5-Hour Circular Gauge Hero Block -->
-            <div class="bg-black/50 p-4 rounded-2xl border border-white/5 flex items-center gap-5">
-              <div class="relative w-24 h-24 flex-shrink-0 flex items-center justify-center">
-                <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                  <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <path class="${m.fill} transition-all duration-1000" stroke-width="3.5" stroke-dasharray="${m.obj.last_5h.pct_pro}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                </svg>
-                <div class="absolute text-center">
-                  <span class="text-lg font-black mono text-white">${m.obj.last_5h.pct_pro}%</span>
-                  <span class="block text-[9px] text-slate-400 uppercase font-bold">5h 소진</span>
+            <!-- Hero Metric Section: Big Percent + Circular Gauge + Stats -->
+            <div class="bg-black/40 rounded-xl p-4 border border-white/5 space-y-3">
+              <div class="flex items-center justify-between gap-3">
+                <div class="space-y-0.5 min-w-0">
+                  <span class="text-[11px] font-medium text-slate-400 block">5시간 롤링 소진율</span>
+                  <div class="flex items-baseline gap-1.5">
+                    <span class="text-3xl font-black mono text-white tracking-tight">${m.obj.last_5h.pct_pro}%</span>
+                    <span class="text-xs text-slate-400 font-mono">/ 100%</span>
+                  </div>
+                  <div class="text-[11px] mono text-slate-400 truncate">
+                    ${m.obj.last_5h.tokens.toLocaleString()} <span class="text-slate-600">/</span> ${m.obj.last_5h.limit}
+                  </div>
+                </div>
+
+                <!-- Compact Circular Gauge -->
+                <div class="relative w-16 h-16 flex-shrink-0 flex items-center justify-center">
+                  <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                    <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="${m.fill} transition-all duration-700" stroke-width="3.5" stroke-dasharray="${Math.min(100, m.obj.last_5h.pct_pro)}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  </svg>
                 </div>
               </div>
 
-              <div class="flex-1 space-y-1.5 text-xs">
-                <div class="flex justify-between text-slate-400">
-                  <span>5시간 토큰량:</span>
-                  <span class="mono text-white font-bold">${m.obj.last_5h.tokens.toLocaleString()}</span>
+              <!-- Stat Grid: 2 Columns with no awkward wrapping -->
+              <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-white/5 text-[11px]">
+                <div class="bg-slate-900/60 p-2 rounded-lg border border-white/5">
+                  <span class="text-slate-400 block text-[10px]">호출 횟수</span>
+                  <span class="mono font-bold text-slate-200 text-xs">${m.obj.last_5h.calls.toLocaleString()}회</span>
                 </div>
-                <div class="flex justify-between text-slate-400">
-                  <span>호출 횟수:</span>
-                  <span class="mono text-slate-300 font-semibold">${m.obj.last_5h.calls} calls</span>
-                </div>
-                <div class="flex justify-between text-slate-400">
-                  <span>5h 기준 한도:</span>
-                  <span class="mono text-indigo-300 text-[11px]">${m.obj.last_5h.limit}</span>
-                </div>
-                <div class="pt-1 text-[11px] text-${m.color}-300 mono flex items-center gap-1 font-semibold">
-                  <span>⏱️ 롤링 리셋:</span>
-                  <span>약 ${m.obj.resets_in_minutes}분 후</span>
+                <div class="bg-slate-900/60 p-2 rounded-lg border border-white/5">
+                  <span class="text-slate-400 block text-[10px]">롤링 리셋</span>
+                  <span class="mono font-bold ${resetColor} text-xs truncate block">${resetTxt}</span>
                 </div>
               </div>
             </div>
 
             <!-- Tier Breakdown Comparison -->
-            <div class="grid grid-cols-2 gap-2 mt-3 text-[11px]">
-              <div class="p-2.5 rounded-xl bg-slate-900/60 border border-white/5 space-y-0.5">
-                <span class="text-slate-400 text-[10px]">Pro/Plus 플랜</span>
-                <div class="mono font-bold text-white text-xs">${m.obj.last_5h.pct_pro}% 소진</div>
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div class="p-2 rounded-xl bg-slate-900/40 border border-white/5">
+                <span class="text-slate-400 text-[10px] block">Pro/Plus 플랜</span>
+                <div class="mono font-bold text-white text-xs">${m.obj.last_5h.pct_pro}%</div>
               </div>
-              <div class="p-2.5 rounded-xl bg-slate-900/60 border border-white/5 space-y-0.5">
-                <span class="text-slate-400 text-[10px]">Team/Org 플랜</span>
-                <div class="mono font-bold text-slate-300 text-xs">${m.obj.last_5h.pct_team}% 소진</div>
+              <div class="p-2 rounded-xl bg-slate-900/40 border border-white/5">
+                <span class="text-slate-400 text-[10px] block">Team/Org 플랜</span>
+                <div class="mono font-bold text-slate-300 text-xs">${m.obj.last_5h.pct_team}%</div>
               </div>
             </div>
           </div>
 
           <!-- 7-Day Weekly Limit Bar Block -->
           <div class="space-y-2 pt-2 border-t border-white/5">
-            <div class="flex justify-between text-slate-300 text-xs">
-              <span class="font-semibold">주간(7일) 누적 사용량:</span>
-              <span class="mono text-white font-bold">${m.obj.last_7d.pct_pro}% (${(m.obj.last_7d.tokens/1000000).toFixed(2)}M / ${m.obj.last_7d.limit})</span>
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-300 font-medium">주간 누적</span>
+              <span class="mono text-white font-bold">${m.obj.last_7d.pct_pro}% <span class="text-slate-500 font-normal">(${((m.obj.last_7d.tokens||0)/1000000).toFixed(2)}M / ${m.obj.last_7d.limit})</span></span>
             </div>
-            <div class="w-full bg-slate-800/80 h-3 rounded-full overflow-hidden p-0.5">
-              <div class="${m.bar} h-full rounded-full transition-all duration-700 shadow-sm" style="width: ${m.obj.last_7d.pct_pro}%"></div>
+            <div class="w-full bg-slate-800/80 h-2 rounded-full overflow-hidden">
+              <div class="${m.bar} h-full rounded-full transition-all duration-700" style="width: ${Math.min(100, m.obj.last_7d.pct_pro)}%"></div>
             </div>
-            <div class="flex justify-between items-center text-[10px] text-slate-400">
-              <span>주간 리셋: 매주 월요일 00:00 UTC</span>
-              <span class="mono">Team 한도: ${m.obj.last_7d.pct_team}%</span>
+            <div class="flex justify-between items-center text-[10px] text-slate-500">
+              <span>월요일 00:00 UTC 리셋</span>
+              <span class="mono">Team ${m.obj.last_7d.pct_team}%</span>
             </div>
           </div>
         </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function renderHudPopover(d) {
@@ -814,29 +845,29 @@
       pop.innerHTML = `
         <div class="space-y-1">
           <div class="flex justify-between text-[11px]">
-            <span class="text-amber-400 font-bold">Claude (5h Rolling):</span>
-            <span class="mono font-bold text-white">${d.claude.last_5h.pct_pro}% (~${d.claude.resets_in_minutes}분 리셋)</span>
+            <span class="text-amber-400 font-bold">Claude (5h):</span>
+            <span class="mono font-bold text-white">${d.claude.last_5h.pct_pro}% (~${d.claude.resets_in_minutes}분)</span>
           </div>
           <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-            <div class="bg-amber-400 h-full" style="width: ${d.claude.last_5h.pct_pro}%"></div>
+            <div class="bg-amber-400 h-full" style="width: ${Math.min(100, d.claude.last_5h.pct_pro)}%"></div>
           </div>
         </div>
         <div class="space-y-1">
           <div class="flex justify-between text-[11px]">
-            <span class="text-blue-400 font-bold">Gemini (5h Rolling):</span>
-            <span class="mono font-bold text-white">${d.gemini.last_5h.pct_pro}%</span>
+            <span class="text-blue-400 font-bold">Gemini (5h):</span>
+            <span class="mono font-bold text-white">${d.gemini.last_5h.pct_pro}% (~${d.gemini.resets_in_minutes}분)</span>
           </div>
           <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-            <div class="bg-blue-400 h-full" style="width: ${d.gemini.last_5h.pct_pro}%"></div>
+            <div class="bg-blue-400 h-full" style="width: ${Math.min(100, d.gemini.last_5h.pct_pro)}%"></div>
           </div>
         </div>
         <div class="space-y-1">
           <div class="flex justify-between text-[11px]">
             <span class="text-emerald-400 font-bold">GPT / Codex (5h):</span>
-            <span class="mono font-bold text-white">${d.gpt.last_5h.pct_pro}% (~${d.gpt.resets_in_minutes}분 리셋)</span>
+            <span class="mono font-bold text-white">${d.gpt.last_5h.pct_pro}% (~${d.gpt.resets_in_minutes}분)</span>
           </div>
           <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-            <div class="bg-emerald-400 h-full" style="width: ${d.gpt.last_5h.pct_pro}%"></div>
+            <div class="bg-emerald-400 h-full" style="width: ${Math.min(100, d.gpt.last_5h.pct_pro)}%"></div>
           </div>
         </div>
       `;
