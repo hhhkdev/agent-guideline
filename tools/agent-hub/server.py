@@ -237,9 +237,80 @@ def detect_project_info(proj_path, archived_list):
     }
 
 
+def detect_active_models():
+    """Detect currently configured and active models in local CLI / agent environments."""
+    models = {
+        "claude": {
+            "slug": "claude-sonnet-5",
+            "name": "Claude 5 Sonnet",
+            "tier_label": "Claude 5 Pro / Team"
+        },
+        "gemini": {
+            "slug": "gemini-3.8-flash",
+            "name": "Gemini 3.8 Flash",
+            "tier_label": "Google AI Pro / Advanced"
+        },
+        "gpt": {
+            "slug": "gpt-5.6-sol",
+            "name": "GPT-5.6-Sol",
+            "tier_label": "Codex / ChatGPT Plus"
+        }
+    }
+
+    # 1. Claude: Check recent project logs
+    claude_dir = os.path.expanduser("~/.claude/projects")
+    if os.path.exists(claude_dir):
+        files = sorted(glob.glob(os.path.join(claude_dir, "**/*.jsonl"), recursive=True), key=os.path.getmtime, reverse=True)
+        for f in files[:5]:
+            try:
+                with open(f, "r", encoding="utf-8") as fp:
+                    for line in fp:
+                        if '"model"' in line:
+                            data = json.loads(line)
+                            m = data.get("message", {}).get("model") or data.get("model")
+                            if m and m != "<synthetic>":
+                                models["claude"]["slug"] = m
+                                if "sonnet-5" in m:
+                                    models["claude"]["name"] = "Claude 5 Sonnet"
+                                elif "3.7" in m or "3-7" in m:
+                                    models["claude"]["name"] = "Claude 3.7 Sonnet"
+                                else:
+                                    models["claude"]["name"] = m.replace("-", " ").title()
+                                break
+                if models["claude"]["slug"] != "claude-sonnet-5":
+                    break
+            except Exception:
+                pass
+
+    # 2. Codex / GPT: Check ~/.codex/config.toml
+    codex_cfg = os.path.expanduser("~/.codex/config.toml")
+    if os.path.exists(codex_cfg):
+        try:
+            with open(codex_cfg, "r", encoding="utf-8") as fp:
+                for line in fp:
+                    if line.strip().startswith("model ="):
+                        val = line.split("=")[1].strip().strip('"').strip("'")
+                        if val:
+                            models["gpt"]["slug"] = val
+                            if "5.6-sol" in val:
+                                models["gpt"]["name"] = "GPT-5.6-Sol"
+                            elif "5.6-terra" in val:
+                                models["gpt"]["name"] = "GPT-5.6-Terra"
+                            elif "5.5" in val:
+                                models["gpt"]["name"] = "GPT-5.5"
+                            else:
+                                models["gpt"]["name"] = val
+                        break
+        except Exception:
+            pass
+
+    return models
+
+
 def parse_token_metrics():
     """
     Extract and aggregate token usage with:
+    - Dynamic active model detection (Claude 5 Sonnet, Gemini 3.8 Flash, GPT-5.6-Sol)
     - 5-hour rolling utilization % (Pro & Team tiers)
     - 7-day weekly utilization % (Pro & Team tiers)
     - Dynamic rolling reset countdowns from actual activity logs
@@ -251,31 +322,36 @@ def parse_token_metrics():
     five_hours_ago = now - timedelta(hours=5)
     seven_days_ago = now - timedelta(days=7)
 
+    active_models = detect_active_models()
+
     stats = {
         "claude": {
-            "name": "Anthropic Claude",
-            "tier_label": "Claude 3.7 Sonnet / Pro",
+            "name": active_models["claude"]["name"],
+            "model_slug": active_models["claude"]["slug"],
+            "tier_label": active_models["claude"]["tier_label"],
             "input": 0, "output": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0,
-            "last_5h": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "300K tok"},
-            "last_7d": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "5.0M tok"},
-            "resets_in_minutes": 0,
-            "status": "정상"
-        },
-        "gemini": {
-            "name": "Google Gemini",
-            "tier_label": "Gemini 2.5 Flash / Pro",
-            "input": 0, "output": 0, "cost": 0.0,
-            "last_5h": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "1.0M tok"},
+            "last_5h": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "500K tok"},
             "last_7d": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "10.0M tok"},
             "resets_in_minutes": 0,
             "status": "정상"
         },
-        "gpt": {
-            "name": "OpenAI ChatGPT / Codex",
-            "tier_label": "GPT-4o / Codex Plus",
+        "gemini": {
+            "name": active_models["gemini"]["name"],
+            "model_slug": active_models["gemini"]["slug"],
+            "tier_label": active_models["gemini"]["tier_label"],
             "input": 0, "output": 0, "cost": 0.0,
-            "last_5h": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "300K tok"},
-            "last_7d": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "3.0M tok"},
+            "last_5h": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "2.0M tok"},
+            "last_7d": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "20.0M tok"},
+            "resets_in_minutes": 0,
+            "status": "정상"
+        },
+        "gpt": {
+            "name": active_models["gpt"]["name"],
+            "model_slug": active_models["gpt"]["slug"],
+            "tier_label": active_models["gpt"]["tier_label"],
+            "input": 0, "output": 0, "cost": 0.0,
+            "last_5h": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "500K tok"},
+            "last_7d": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "5.0M tok"},
             "resets_in_minutes": 0,
             "status": "정상"
         },
@@ -340,10 +416,10 @@ def parse_token_metrics():
 
     c = stats["claude"]
     c["cost"] = (c["input"] * 3.0 + c["output"] * 15.0 + c["cache_read"] * 0.30 + c["cache_write"] * 3.75) / 1_000_000
-    c["last_5h"]["pct_pro"] = min(100.0, round((c["last_5h"]["tokens"] / 300_000) * 100, 1))
-    c["last_5h"]["pct_team"] = min(100.0, round((c["last_5h"]["tokens"] / 600_000) * 100, 1))
-    c["last_7d"]["pct_pro"] = min(100.0, round((c["last_7d"]["tokens"] / 5_000_000) * 100, 1))
-    c["last_7d"]["pct_team"] = min(100.0, round((c["last_7d"]["tokens"] / 15_000_000) * 100, 1))
+    c["last_5h"]["pct_pro"] = min(100.0, round((c["last_5h"]["tokens"] / 500_000) * 100, 1))
+    c["last_5h"]["pct_team"] = min(100.0, round((c["last_5h"]["tokens"] / 1_500_000) * 100, 1))
+    c["last_7d"]["pct_pro"] = min(100.0, round((c["last_7d"]["tokens"] / 10_000_000) * 100, 1))
+    c["last_7d"]["pct_team"] = min(100.0, round((c["last_7d"]["tokens"] / 30_000_000) * 100, 1))
     if earliest_c_5h:
         c["resets_in_minutes"] = max(0, int((earliest_c_5h + timedelta(hours=5) - now).total_seconds() / 60))
     c["status"] = "한도 도달" if c["last_5h"]["pct_pro"] >= 100 else ("주의" if c["last_5h"]["pct_pro"] >= 75 else "정상")
@@ -371,12 +447,12 @@ def parse_token_metrics():
     g = stats["gemini"]
     g["last_5h"]["calls"] = g_5h_steps
     g["last_5h"]["tokens"] = g_5h_steps * 850
-    g["last_5h"]["pct_pro"] = min(100.0, round((g["last_5h"]["tokens"] / 1_000_000) * 100, 1))
-    g["last_5h"]["pct_team"] = min(100.0, round((g["last_5h"]["tokens"] / 2_500_000) * 100, 1))
+    g["last_5h"]["pct_pro"] = min(100.0, round((g["last_5h"]["tokens"] / 2_000_000) * 100, 1))
+    g["last_5h"]["pct_team"] = min(100.0, round((g["last_5h"]["tokens"] / 5_000_000) * 100, 1))
     g["last_7d"]["calls"] = g_7d_steps
     g["last_7d"]["tokens"] = g_7d_steps * 850
-    g["last_7d"]["pct_pro"] = min(100.0, round((g["last_7d"]["tokens"] / 10_000_000) * 100, 1))
-    g["last_7d"]["pct_team"] = min(100.0, round((g["last_7d"]["tokens"] / 25_000_000) * 100, 1))
+    g["last_7d"]["pct_pro"] = min(100.0, round((g["last_7d"]["tokens"] / 20_000_000) * 100, 1))
+    g["last_7d"]["pct_team"] = min(100.0, round((g["last_7d"]["tokens"] / 50_000_000) * 100, 1))
     if g_last_ts:
         g["resets_in_minutes"] = max(0, int((g_last_ts + 5 * 3600 - now_s) / 60))
     g["status"] = "한도 도달" if g["last_5h"]["pct_pro"] >= 100 else ("주의" if g["last_5h"]["pct_pro"] >= 75 else "정상")
@@ -407,21 +483,21 @@ def parse_token_metrics():
             o["last_5h"]["calls"] = o_5h_turns
             computed_5h_tok = o_5h_turns * 5000 + o_5h_items * 350
             if o_limit_hit:
-                o["last_5h"]["tokens"] = 300_000
+                o["last_5h"]["tokens"] = 500_000
                 o["last_5h"]["pct_pro"] = 100.0
                 o["last_5h"]["pct_team"] = 50.0
                 o["status"] = "한도 도달"
             else:
                 o["last_5h"]["tokens"] = computed_5h_tok
-                o["last_5h"]["pct_pro"] = min(100.0, round((computed_5h_tok / 300_000) * 100, 1))
-                o["last_5h"]["pct_team"] = min(100.0, round((computed_5h_tok / 600_000) * 100, 1))
+                o["last_5h"]["pct_pro"] = min(100.0, round((computed_5h_tok / 500_000) * 100, 1))
+                o["last_5h"]["pct_team"] = min(100.0, round((computed_5h_tok / 1_500_000) * 100, 1))
                 o["status"] = "한도 도달" if o["last_5h"]["pct_pro"] >= 100 else ("주의" if o["last_5h"]["pct_pro"] >= 75 else "정상")
 
             o["last_7d"]["calls"] = o_7d_turns
             computed_7d_tok = o_7d_turns * 12000 + o_7d_items * 400
             o["last_7d"]["tokens"] = computed_7d_tok
-            o["last_7d"]["pct_pro"] = min(100.0, round((computed_7d_tok / 3_000_000) * 100, 1))
-            o["last_7d"]["pct_team"] = min(100.0, round((computed_7d_tok / 8_000_000) * 100, 1))
+            o["last_7d"]["pct_pro"] = min(100.0, round((computed_7d_tok / 5_000_000) * 100, 1))
+            o["last_7d"]["pct_team"] = min(100.0, round((computed_7d_tok / 15_000_000) * 100, 1))
         except Exception:
             pass
 

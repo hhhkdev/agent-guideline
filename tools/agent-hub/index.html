@@ -763,7 +763,10 @@
               <div class="flex items-center gap-2.5 min-w-0">
                 <span class="w-3 h-3 rounded-full ${m.bar} shadow-sm shadow-${m.color}-500/50 flex-shrink-0"></span>
                 <div class="truncate">
-                  <h3 class="font-bold text-sm sm:text-base text-white truncate">${m.obj.name}</h3>
+                  <div class="flex items-center gap-1.5 truncate">
+                    <h3 class="font-bold text-sm sm:text-base text-white truncate">${m.obj.name}</h3>
+                    ${m.obj.model_slug ? `<span class="px-1.5 py-0.2 rounded bg-white/5 border border-white/10 text-[9px] text-indigo-300 mono flex-shrink-0">${m.obj.model_slug}</span>` : ''}
+                  </div>
                   <div class="text-[11px] text-slate-400 truncate">${m.obj.tier_label}</div>
                 </div>
               </div>
