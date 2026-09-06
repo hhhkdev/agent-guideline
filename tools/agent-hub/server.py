@@ -241,12 +241,14 @@ def detect_project_info(proj_path, archived_list):
             if r_rem.returncode == 0:
                 git_info["origin_url"] = r_rem.stdout.strip()
 
-            r_date = subprocess.run(["git", "-C", proj_path, "log", "-1", "--format=%cr|%cI"],
+            r_date = subprocess.run(["git", "-C", proj_path, "log", "-1", "--format=%cr|%cI|%s|%an"],
                                     capture_output=True, text=True, timeout=2)
             if r_date.returncode == 0 and r_date.stdout.strip():
                 parts = r_date.stdout.strip().split("|")
                 git_info["last_commit_relative"] = parts[0]
                 git_info["last_commit_iso"] = parts[1] if len(parts) > 1 else ""
+                git_info["last_commit_msg"] = parts[2] if len(parts) > 2 else ""
+                git_info["last_commit_author"] = parts[3] if len(parts) > 3 else ""
 
             r_cnt = subprocess.run(["git", "-C", proj_path, "rev-list", "--count", "HEAD"],
                                    capture_output=True, text=True, timeout=2)
@@ -1000,6 +1002,8 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
             self.handle_add_or_webhook_skill(payload)
         elif path == "/api/ports/kill":
             self.handle_kill_port(payload)
+        elif path == "/api/projects/open":
+            self.handle_open_project(payload)
         else:
             self.send_error(404, "Not Found")
 
@@ -1018,6 +1022,25 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.end_headers()
+
+    def handle_open_project(self, payload):
+        target_path = payload.get("path", "").strip()
+        target_app = payload.get("app", "code").strip()
+        try:
+            safe_target = validate_safe_path(target_path, ALLOWED_DEV_ROOT)
+            if target_app == "code":
+                subprocess.Popen(["code", safe_target])
+                self.json_response({"success": True, "message": f"VS Code로 열었습니다: {os.path.basename(safe_target)}"})
+            elif target_app == "finder":
+                subprocess.Popen(["open", safe_target])
+                self.json_response({"success": True, "message": f"Finder로 열었습니다: {os.path.basename(safe_target)}"})
+            elif target_app == "terminal":
+                subprocess.Popen(["open", "-a", "Terminal", safe_target])
+                self.json_response({"success": True, "message": f"Terminal로 열었습니다: {os.path.basename(safe_target)}"})
+            else:
+                self.json_response({"error": f"Unknown target app: {target_app}"}, status=400)
+        except Exception as e:
+            self.json_response({"error": str(e)}, status=500)
 
 
     def handle_get_ports(self):
