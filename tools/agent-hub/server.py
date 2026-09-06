@@ -155,11 +155,60 @@ def detect_project_info(proj_path, archived_list):
             ai_configs.append(c)
     if os.path.exists(os.path.join(proj_path, "docs", "ai")):
         ai_configs.append("docs/ai/")
+    elif any(d in files for d in ["01-ecosystem-analysis", "02-harness-architecture"]):
+        ai_configs.append("docs/ai/")
 
-    score = 0
-    if "AGENTS.md" in ai_configs: score += 30
-    if "CLAUDE.md" in ai_configs: score += 20
-    if "docs/ai/" in ai_configs: score += 50
+    # 5-Layer Harness Architecture Scoring (0 ~ 100)
+    score_breakdown = {
+        "l1_entrypoint": 0,    # Layer 1: Entrypoint (AGENTS.md) - 25 pts
+        "l2_context": 0,       # Layer 2: Progressive Context (docs/ai/) - 35 pts
+        "l3_adapters": 0,      # Layer 3: Multi-Tool Adapter (CLAUDE.md / .cursorrules / .gemini) - 20 pts
+        "l4_verification": 0,  # Layer 4: Verification Gate - 10 pts
+        "l5_tooling": 0        # Layer 5: Tooling & Automation - 10 pts
+    }
+    missing_elements = []
+
+    # Layer 1: Entrypoint (AGENTS.md)
+    if "AGENTS.md" in files:
+        score_breakdown["l1_entrypoint"] = 25
+    else:
+        missing_elements.append("진입점 (AGENTS.md)")
+
+    # Layer 2: Progressive Context (docs/ai/ or modular architecture docs)
+    docs_ai_path = os.path.join(proj_path, "docs", "ai")
+    if (os.path.exists(docs_ai_path) and len(os.listdir(docs_ai_path)) > 0) or any(d in files for d in ["01-ecosystem-analysis", "02-harness-architecture"]):
+        score_breakdown["l2_context"] = 35
+    else:
+        missing_elements.append("점진적 컨텍스트 (docs/ai/)")
+
+    # Layer 3: Multi-Tool Adapter (CLAUDE.md, .cursorrules, .gemini, .claude)
+    if any(c in files for c in ["CLAUDE.md", ".cursorrules", ".gemini", ".claude"]):
+        score_breakdown["l3_adapters"] = 20
+    else:
+        missing_elements.append("멀티 에이전트 어댑터 (CLAUDE.md)")
+
+    # Layer 4: Verification Gate
+    has_verification = False
+    if "AGENTS.md" in files:
+        try:
+            with open(os.path.join(proj_path, "AGENTS.md"), "r", encoding="utf-8") as af:
+                content = af.read()
+                if "Verification Gate" in content or "검증 관문" in content:
+                    has_verification = True
+        except Exception:
+            pass
+    if has_verification:
+        score_breakdown["l4_verification"] = 10
+    else:
+        missing_elements.append("결정론적 검증 관문")
+
+    # Layer 5: Tooling & Automation (tools/, scripts/, or standard package config)
+    if any(t in files for t in ["tools", "04-skills-archive", ".skills", "scripts", "package.json", "pubspec.yaml", "pom.xml"]):
+        score_breakdown["l5_tooling"] = 10
+    else:
+        missing_elements.append("자동화 도구 / 런타임")
+
+    score = sum(score_breakdown.values())
 
     git_info = {
         "is_git": False,
@@ -231,6 +280,8 @@ def detect_project_info(proj_path, archived_list):
         "family": family,
         "ai_configs": ai_configs,
         "score": score,
+        "score_breakdown": score_breakdown,
+        "missing_elements": missing_elements,
         "git": git_info,
         "is_active_recently": is_active_recently,
         "is_archived": proj_name in archived_list
