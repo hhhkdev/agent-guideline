@@ -71,53 +71,53 @@
   <div class="fixed top-0 left-1/4 w-[500px] h-[260px] bg-indigo-600/[0.07] rounded-full blur-[140px] pointer-events-none -z-10"></div>
   <div class="fixed bottom-0 right-10 w-[400px] h-[260px] bg-purple-600/[0.07] rounded-full blur-[140px] pointer-events-none -z-10"></div>
 
-  <!-- High-End Developer Header (Linear / Raycast Style) -->
-  <header class="sticky top-0 z-50 glass-panel border-b border-white/[0.06] px-3 sm:px-6 py-2.5 transition-all">
+  <!-- Minimalist High-Utility Header -->
+  <header class="sticky top-0 z-50 glass-panel border-b border-white/[0.06] px-3 sm:px-6 py-2 transition-all">
     <div class="max-w-[1750px] mx-auto flex items-center justify-between gap-3">
       
-      <!-- Minimalist Brandmark -->
-      <div class="flex items-center gap-3 flex-shrink-0">
-        <div class="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300 font-mono font-bold text-xs shadow-inner">
-          ⌘
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="font-semibold text-xs tracking-tight text-slate-100">Agent Hub</span>
-          <span class="px-1.5 py-0.5 text-[10px] font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md">Live</span>
-        </div>
-      </div>
-
-      <!-- Segmented Navigation (Touch-Friendly & Keyboard-Driven) -->
-      <nav class="flex items-center gap-0.5 bg-slate-950/70 p-1 rounded-xl border border-white/[0.06] overflow-x-auto max-w-[calc(100vw-130px)] sm:max-w-none no-scrollbar">
+      <!-- Segmented Navigation (Clean & Compact) -->
+      <nav class="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-white/[0.06] overflow-x-auto no-scrollbar">
         <button onclick="switchTab('projects')" id="tab-btn-projects" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 shadow-sm">
-          <span>📁</span> <span>프로젝트</span>
+          <span>📂</span> <span>프로젝트</span>
         </button>
         <button onclick="switchTab('quota')" id="tab-btn-quota" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
-          <span>⏳</span> <span>AI 쿼터</span>
+          <span>⚡</span> <span>AI 쿼터</span>
         </button>
         <button onclick="switchTab('ports')" id="tab-btn-ports" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
           <span>🔌</span> <span>포트</span>
         </button>
-        <button onclick="switchTab('skills')" id="tab-btn-skills" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
-          <span>⭐</span> <span>스킬 마켓</span>
-        </button>
         <button onclick="switchTab('subagents')" id="tab-btn-subagents" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
           <span>🤖</span> <span>에이전트</span>
         </button>
-        <button onclick="switchTab('github')" id="tab-btn-github" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
-          <span>🐙</span> <span>Git 복제</span>
+        <button onclick="switchTab('skills')" id="tab-btn-skills" class="tab-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-300 transition flex items-center gap-1 whitespace-nowrap flex-shrink-0">
+          <span>⭐</span> <span>스킬</span>
         </button>
-        <button onclick="switchTab('docs')" id="tab-btn-docs" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+        <button onclick="switchTab('github')" id="tab-btn-github" class="tab-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-300 transition flex items-center gap-1 whitespace-nowrap flex-shrink-0">
+          <span>🐙</span> <span>Git</span>
+        </button>
+        <button onclick="switchTab('docs')" id="tab-btn-docs" class="tab-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-300 transition flex items-center gap-1 whitespace-nowrap flex-shrink-0">
           <span>📖</span> <span>가이드</span>
         </button>
       </nav>
 
-      <!-- Quick Action: Quota HUD Pill Button -->
+      <!-- Minimal Colored Dot Quota Status (Click to open HUD) -->
       <div class="flex items-center gap-2 flex-shrink-0">
-        <button onclick="toggleFloatingHUD()" title="단축키 'Q' 또는 클릭" class="px-2.5 py-1.2 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/[0.08] text-xs font-mono flex items-center gap-2 transition shadow-sm">
-          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-          <span class="hidden sm:inline text-[11px] text-slate-400">Claude 5h:</span>
-          <span id="header-claude-mini-pct" class="font-bold text-amber-300 text-[11px]">79.1%</span>
-          <kbd class="hidden md:inline px-1 py-0.2 text-[9px] bg-slate-800 border border-white/10 rounded text-slate-400">Q</kbd>
+        <button onclick="toggleFloatingHUD()" title="단축키 'Q' 또는 클릭하여 상세 보기" class="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 border border-white/[0.08] text-xs font-mono flex items-center gap-2.5 transition shadow-sm cursor-pointer">
+          <span class="flex items-center gap-1 text-[11px]">
+            <span class="w-2 h-2 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50"></span>
+            <span id="nav-c-val" class="font-bold text-amber-300">--%</span>
+          </span>
+          <span class="text-slate-600">·</span>
+          <span class="flex items-center gap-1 text-[11px]">
+            <span class="w-2 h-2 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50"></span>
+            <span id="nav-g-val" class="font-bold text-blue-300">--%</span>
+          </span>
+          <span class="text-slate-600">·</span>
+          <span class="flex items-center gap-1 text-[11px]">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></span>
+            <span id="nav-o-val" class="font-bold text-emerald-300">--%</span>
+          </span>
+          <kbd class="hidden sm:inline px-1 py-0.2 text-[9px] bg-slate-800 border border-white/10 rounded text-slate-400 ml-1">Q</kbd>
         </button>
       </div>
     </div>
@@ -130,6 +130,34 @@
     <!-- TAB 1: PROJECTS & WORKSPACE ACTIVITY                     -->
     <!-- ======================================================== -->
     <section id="tab-projects" class="tab-content space-y-4">
+      
+      <!-- Git Contribution Grass (개발 잔디) Card -->
+      <div class="glass-panel p-4 rounded-2xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">🌱</span>
+            <h3 class="text-xs font-bold text-slate-200">개발 기여도 잔디 (최근 90일 커밋 히트맵)</h3>
+            <span id="git-total-commits-badge" class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-semibold">계산 중...</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
+            <span>Less</span>
+            <span class="w-2.5 h-2.5 rounded-sm bg-slate-900 border border-white/5"></span>
+            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-950 border border-emerald-800/40"></span>
+            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-700"></span>
+            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span>
+            <span class="w-2.5 h-2.5 rounded-sm bg-emerald-400"></span>
+            <span>More</span>
+          </div>
+        </div>
+
+        <!-- Scrollable Grass Container -->
+        <div class="overflow-x-auto pb-1 no-scrollbar">
+          <div id="git-grass-grid" class="flex gap-1 min-w-max items-center py-1">
+            <!-- Injected via JS: 13-14 week columns of 7 day squares -->
+          </div>
+        </div>
+      </div>
+
       <div class="glass-panel p-3 sm:p-4 rounded-2xl flex flex-col gap-2.5">
         <!-- Filter Pills with Smooth Mobile Scroll -->
         <div class="flex items-center justify-between gap-2">
@@ -240,72 +268,53 @@
     <!-- ======================================================== -->
     <!-- TAB 4: VISUAL SUBAGENT ORCHESTRATION PIPELINE            -->
     <!-- ======================================================== -->
+    <!-- ======================================================== -->
+    <!-- TAB 4: SUBAGENT WORKER PIPELINE                          -->
+    <!-- ======================================================== -->
     <section id="tab-subagents" class="tab-content hidden space-y-4">
       <div class="glass-panel px-4 py-3 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <div class="flex items-center gap-2">
             <span class="text-base">🤖</span>
-            <h2 class="text-sm sm:text-base font-bold text-white">서브에이전트 오케스트레이션</h2>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">Hierarchy DAG</span>
+            <h2 class="text-sm sm:text-base font-bold text-white">서브에이전트 작업 파이프라인</h2>
+            <span id="subagents-count-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">3 Active</span>
           </div>
-          <p class="text-xs text-slate-400 mt-0.5">에이전트 계층 트리 및 작업 위임 파이프라인 관리</p>
+          <p class="text-xs text-slate-400 mt-0.5">프로젝트별 전문 워커 에이전트 현황 및 1-Click 태스크 위임</p>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="killAllSubagents()" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition">
-            🛑 전체 에이전트 회수 (Kill All)
+          <button onclick="killAllSubagents()" class="px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition">
+            🛑 전체 에이전트 초기화 (Reset)
           </button>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <!-- Visual Pipeline / Hierarchy Tree Column -->
-        <div class="col-span-12 lg:col-span-7 glass-panel p-4 rounded-2xl space-y-3">
-          <div class="flex justify-between items-center border-b border-white/10 pb-2">
-            <h3 class="font-bold text-xs text-slate-200">🌳 에이전트 협업 트리 (Execution Tree)</h3>
-            <span class="text-[10px] text-slate-400 mono">계층적 위임 구조</span>
-          </div>
-          <div id="subagents-tree-view" class="space-y-3 py-2">
-            <!-- Rendered via JS -->
-          </div>
-        </div>
+      <!-- Quick 1-Line Task Dispatch Bar -->
+      <div class="glass-panel p-3.5 rounded-2xl">
+        <form onsubmit="handleDispatchSubagent(event)" class="flex flex-col sm:flex-row items-center gap-2 text-xs">
+          <select id="sub-role-select" class="w-full sm:w-48 px-3 py-2 bg-slate-950 border border-white/10 rounded-xl text-white">
+            <option value="Code Reviewer">🛠️ Code Reviewer</option>
+            <option value="iOS Builder">📱 iOS Builder</option>
+            <option value="Design System Guardian">🎨 DS Guardian</option>
+            <option value="Backend Architect">⚡ Backend Architect</option>
+            <option value="General Specialist">🤖 일반 워커</option>
+          </select>
+          <select id="sub-proj" class="w-full sm:w-44 px-3 py-2 bg-slate-950 border border-white/10 rounded-xl text-white">
+            <option value="CampusYA-FE">CampusYA-FE</option>
+            <option value="teumteum-mobile">teumteum-mobile</option>
+            <option value="1D1S-client">1D1S-client</option>
+            <option value="hivcd-frontend">hivcd-frontend</option>
+            <option value="please-2000won-frontend">please-2000won-frontend</option>
+          </select>
+          <input type="text" id="sub-prompt" required placeholder="수행할 태스크 입력 (예: iOS 번들러 빌드 에러 수정 및 PR 생성)..." class="flex-1 w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-xl text-white">
+          <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md whitespace-nowrap">
+            🚀 즉시 투입
+          </button>
+        </form>
+      </div>
 
-        <!-- Dispatch New Subagent Form -->
-        <div class="col-span-12 lg:col-span-5 glass-card p-4 rounded-2xl space-y-3 text-xs">
-          <h3 class="font-bold text-slate-200 border-b border-white/10 pb-2">⚡ 신규 서브에이전트 발주 (Dispatch)</h3>
-          <form onsubmit="handleDispatchSubagent(event)" class="space-y-3">
-            <div>
-              <label class="text-slate-400 block mb-1">상위 에이전트 (Parent Node)</label>
-              <select id="sub-parent-sel" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
-                <option value="subagent-100">subagent-100 (Master Orchestrator)</option>
-                <option value="subagent-102">subagent-102 (iOS Swift Widget Engineer)</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-slate-400 block mb-1">부여할 역할 (Role)</label>
-              <input type="text" id="sub-role" required placeholder="예: Backend Query Optimizer" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
-            </div>
-            <div>
-              <label class="text-slate-400 block mb-1">대상 프로젝트</label>
-              <select id="sub-proj" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
-                <option value="CampusYA-FE">CampusYA-FE</option>
-                <option value="teumteum-mobile">teumteum-mobile</option>
-                <option value="1D1S-client">1D1S-client</option>
-                <option value="hivcd-frontend">hivcd-frontend</option>
-                <option value="please-2000won-frontend">please-2000won-frontend</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-slate-400 block mb-1">작업 지시 프롬프트</label>
-              <textarea id="sub-prompt" rows="2" required placeholder="서브에이전트가 완수할 구체적인 태스크를 입력하세요." class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white"></textarea>
-            </div>
-            <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md">
-              🚀 파이프라인에 서브에이전트 투입
-            </button>
-          </form>
-          <div class="bg-black/50 p-2.5 rounded-xl border border-white/5 text-[10px] mono text-indigo-300 select-all">
-            CLI: python3 tools/harness-cli.py subagent dispatch --role "..." --project "..."
-          </div>
-        </div>
+      <!-- Active Workers Grid -->
+      <div id="subagents-workers-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <!-- Rendered via JS -->
       </div>
     </section>
 
@@ -464,24 +473,27 @@
   </main>
 
   <!-- ======================================================== -->
-  <!-- FLOATING QUOTA HUD (Quick-Glance Overlay)                  -->
+  <!-- FLOATING QUOTA PILL (Quick-Glance Overlay)                 -->
   <!-- ======================================================== -->
   <div id="floating-hud-widget" class="fixed bottom-4 right-4 z-50">
-    <div onclick="toggleFloatingHUD()" class="cursor-pointer bg-slate-950/90 hover:bg-slate-900 border border-white/15 p-2.5 rounded-2xl shadow-2xl flex items-center gap-3 transition">
-      <div class="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 text-xs font-bold mono">
-        HUD
+    <div onclick="toggleFloatingHUD()" class="cursor-pointer bg-slate-950/90 hover:bg-slate-900 border border-white/15 px-3 py-2 rounded-2xl shadow-2xl flex items-center gap-3 transition backdrop-blur-md">
+      <div class="flex items-center gap-2 font-mono font-bold text-[11px]">
+        <span class="flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span class="text-amber-300" id="hud-c-val">--%</span>
+        </span>
+        <span class="text-slate-600">·</span>
+        <span class="flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+          <span class="text-blue-300" id="hud-g-val">--%</span>
+        </span>
+        <span class="text-slate-600">·</span>
+        <span class="flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="text-emerald-300" id="hud-o-val">--%</span>
+        </span>
       </div>
-      <div class="text-[11px] leading-tight pr-1">
-        <div class="text-slate-400 text-[10px] flex items-center gap-1">
-          <span>3대 AI 롤링 쿼터</span>
-          <kbd class="text-[8px] bg-slate-800 px-1 rounded text-slate-400">Q</kbd>
-        </div>
-        <div class="flex items-center gap-2 font-mono font-bold text-[11px] mt-0.5">
-          <span class="text-amber-400">C: <span id="hud-c-val">79%</span></span>
-          <span class="text-blue-400">G: <span id="hud-g-val">45%</span></span>
-          <span class="text-emerald-400">O: <span id="hud-o-val">65%</span></span>
-        </div>
-      </div>
+      <kbd class="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-white/10">Q</kbd>
     </div>
 
     <!-- Expanded Popup Modal -->
@@ -596,7 +608,7 @@
         btn.classList.add('bg-indigo-600', 'text-white');
       }
 
-      if (id === 'projects') loadProjects();
+      if (id === 'projects') { loadProjects(); loadGitActivity(); }
       if (id === 'quota') loadQuota();
       if (id === 'skills') loadSkills();
       if (id === 'subagents') loadSubagents();
@@ -655,55 +667,43 @@
 
       const container = document.getElementById('projects-grid');
       container.innerHTML = list.map(p => {
-        const scoreColor = p.score === 100 ? 'text-emerald-400' : (p.score >= 50 ? 'text-amber-400' : 'text-rose-400');
         const isRecent = p.git.recent_commits_30d > 0;
+        const branchBadge = p.git.branch ? `<span class="text-slate-400 font-mono text-[10px]">🌿 ${p.git.branch}</span>` : '';
         return `
-          <div class="glass-card p-3.5 rounded-2xl flex flex-col justify-between hover:border-white/20 transition group">
+          <div class="glass-card p-4 rounded-2xl flex flex-col justify-between hover:border-white/20 transition group space-y-3">
             <div>
-              <div class="flex justify-between items-start gap-2 mb-1.5">
+              <div class="flex justify-between items-start gap-2 mb-2">
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5 min-w-0">
                     <h4 class="font-bold text-sm text-white truncate" title="${p.name}">${p.name}</h4>
                     ${p.family !== 'Other' ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex-shrink-0">${p.family}</span>` : ''}
                   </div>
-                  <div class="text-[10px] text-slate-500 mono truncate">${p.category}</div>
+                  <div class="text-[11px] text-slate-400 truncate mt-0.5">${p.category}</div>
                 </div>
                 <div class="text-right flex-shrink-0">
-                  <span class="mono font-bold text-xs ${scoreColor} cursor-help" title="하네스 5계층 점수:&#10;• L1 진입점(AGENTS.md): ${p.score_breakdown?.l1_entrypoint||0}/25&#10;• L2 점진적컨텍스트(docs/ai): ${p.score_breakdown?.l2_context||0}/35&#10;• L3 멀티에이전트(CLAUDE.md): ${p.score_breakdown?.l3_adapters||0}/20&#10;• L4 검증관문(Verification Gate): ${p.score_breakdown?.l4_verification||0}/10&#10;• L5 자동화도구(Tools/Scripts): ${p.score_breakdown?.l5_tooling||0}/10">${p.score}점</span>
-                  ${isRecent ? `<div class="text-[9px] text-emerald-400 font-bold whitespace-nowrap">🔥 30일 커밋 ${p.git.recent_commits_30d}개</div>` : `<div class="text-[9px] text-slate-500 whitespace-nowrap">${p.git.last_commit_relative}</div>`}
+                  ${isRecent ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">🔥 30일 ${p.git.recent_commits_30d} 커밋</span>` : `<span class="text-[10px] text-slate-500">${p.git.last_commit_relative}</span>`}
                 </div>
               </div>
 
-              <div class="flex flex-wrap gap-1 mb-2">
-                ${p.stack.map(s => `<span class="px-1.5 py-0.2 rounded text-[9px] bg-slate-800 text-slate-300">${s}</span>`).join('')}
+              <!-- Tech Stacks -->
+              <div class="flex flex-wrap gap-1 mb-2.5">
+                ${p.stack.map(s => `<span class="px-2 py-0.5 rounded-md text-[10px] bg-slate-900 text-slate-300 border border-white/5">${s}</span>`).join('')}
               </div>
 
-              <div class="bg-black/40 p-2 rounded-xl text-[10px] space-y-1 text-slate-400">
-                <div class="flex justify-between">
-                  <span>Git: <strong class="text-slate-200 mono">${p.git.branch || 'None'}</strong></span>
-                  <span class="text-slate-500">총 ${p.git.total_commits} 커밋</span>
-                </div>
-                ${p.git.origin_url ? `<div class="truncate text-[9px] text-slate-500 mono" title="${p.git.origin_url}">🔗 ${p.git.origin_url.replace('https://github.com/', '')}</div>` : ''}
-                <div class="flex justify-between items-center">
-                  <span>AI: <span class="text-indigo-300">${p.ai_configs.join(', ') || '미설정'}</span></span>
-                </div>
-                ${p.missing_elements && p.missing_elements.length > 0 ? `
-                  <div class="text-[9px] text-amber-400/90 pt-1 border-t border-white/5 truncate" title="누락 요소: ${p.missing_elements.join(', ')}">
-                    ⚠️ 누락: ${p.missing_elements[0]}${p.missing_elements.length > 1 ? ` 외 ${p.missing_elements.length - 1}개` : ''}
-                  </div>
-                ` : `
-                  <div class="text-[9px] text-emerald-400/90 pt-1 border-t border-white/5 font-semibold">
-                    ✓ 5계층 하네스 완비 (100점)
-                  </div>
-                `}
+              <!-- Meta Info Line -->
+              <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/5">
+                ${branchBadge || '<span class="text-slate-500 text-[10px]">Git 없음</span>'}
+                <span class="text-slate-400 mono text-[10px]">총 ${p.git.total_commits} 커밋</span>
               </div>
+              ${p.git.origin_url ? `<div class="truncate text-[10px] text-slate-500 mono pt-1" title="${p.git.origin_url}">🔗 ${p.git.origin_url.replace('https://github.com/', '')}</div>` : ''}
             </div>
 
-            <div class="mt-3 pt-2 border-t border-white/[0.06] flex justify-between items-center text-xs">
-              <button onclick="toggleArchive('${p.name}', ${!p.is_archived})" class="text-[10px] text-slate-400 hover:text-white transition">
-                ${p.is_archived ? '✨ 보관 해제' : '📦 보관/숨김'}
+            <!-- Footer: Archive Toggle & Path -->
+            <div class="pt-2.5 border-t border-white/[0.06] flex justify-between items-center text-xs">
+              <span class="text-[10px] text-slate-500 mono truncate max-w-[170px]" title="${p.path}">dev/${p.name}</span>
+              <button onclick="toggleArchive('${p.name}', ${!p.is_archived})" class="px-2 py-1 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-[10px] font-medium text-slate-300 border border-white/5 transition flex items-center gap-1">
+                ${p.is_archived ? '<span>✨ 보관 해제</span>' : '<span>📦 보관하기</span>'}
               </button>
-              ${p.score < 100 ? `<button onclick="injectHarness('${p.path}', '${p.category}')" class="px-2 py-0.5 bg-indigo-600 rounded text-[10px] font-bold text-white shadow">하네스 주입</button>` : `<span class="text-emerald-400 font-semibold text-[10px]">✓ 완비</span>`}
             </div>
           </div>
         `;
@@ -735,14 +735,70 @@
         const res = await fetch('/api/tokens');
         const data = await res.json();
         
-        // Update header & HUD mini values
-        document.getElementById('header-claude-mini-pct').innerText = data.claude.last_5h.pct_pro + '%';
-        document.getElementById('hud-c-val').innerText = data.claude.last_5h.pct_pro + '%';
-        document.getElementById('hud-g-val').innerText = data.gemini.last_5h.pct_pro + '%';
-        document.getElementById('hud-o-val').innerText = data.gpt.last_5h.pct_pro + '%';
+        // Update header & HUD mini values with colored dot values
+        const cVal = data.claude.last_5h.pct_pro + '%';
+        const gVal = data.gemini.last_5h.pct_pro + '%';
+        const oVal = data.gpt.last_5h.pct_pro + '%';
+
+        const navC = document.getElementById('nav-c-val');
+        const navG = document.getElementById('nav-g-val');
+        const navO = document.getElementById('nav-o-val');
+        if (navC) navC.innerText = cVal;
+        if (navG) navG.innerText = gVal;
+        if (navO) navO.innerText = oVal;
+
+        const hudC = document.getElementById('hud-c-val');
+        const hudG = document.getElementById('hud-g-val');
+        const hudO = document.getElementById('hud-o-val');
+        if (hudC) hudC.innerText = cVal;
+        if (hudG) hudG.innerText = gVal;
+        if (hudO) hudO.innerText = oVal;
 
         renderQuotaCards(data);
         renderHudPopover(data);
+      } catch (e) { console.error(e); }
+    }
+
+    // Git Contribution Grass (잔디)
+    async function loadGitActivity() {
+      try {
+        const res = await fetch('/api/git/activity');
+        const data = await res.json();
+        const badge = document.getElementById('git-total-commits-badge');
+        if (badge) {
+          badge.innerText = `총 ${data.total_commits} 커밋 (활동일 ${data.active_days}일)`;
+        }
+
+        const grid = document.getElementById('git-grass-grid');
+        if (!grid || !data.calendar) return;
+
+        // Group into 7-day columns (weeks)
+        const weeks = [];
+        let currentWeek = [];
+        data.calendar.forEach(d => {
+          currentWeek.push(d);
+          if (currentWeek.length === 7) {
+            weeks.push(currentWeek);
+            currentWeek = [];
+          }
+        });
+        if (currentWeek.length > 0) weeks.push(currentWeek);
+
+        const levelColors = [
+          'bg-slate-900 border border-white/5',
+          'bg-emerald-950 border border-emerald-800/40',
+          'bg-emerald-700',
+          'bg-emerald-500',
+          'bg-emerald-400'
+        ];
+
+        grid.innerHTML = weeks.map(w => `
+          <div class="flex flex-col gap-1">
+            ${w.map(day => `
+              <div class="w-3 h-3 rounded-sm ${levelColors[day.level]} cursor-pointer transition hover:scale-125" title="${day.date}: ${day.count}개 커밋"></div>
+            `).join('')}
+          </div>
+        `).join('');
       } catch (e) { console.error(e); }
     }
 
@@ -988,67 +1044,62 @@
     }
 
     function renderSubagentsTree() {
-      const container = document.getElementById('subagents-tree-view');
-      const root = subagentsList.find(s => !s.parent_id);
-      const children = subagentsList.filter(s => s.parent_id);
+      const container = document.getElementById('subagents-workers-grid');
+      const badge = document.getElementById('subagents-count-badge');
+      if (badge) badge.innerText = `${subagentsList.length} Active Workers`;
+      if (!container) return;
 
-      let html = '';
-      if (root) {
-        html += `
-          <div class="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl space-y-1">
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
-                <span class="mono font-bold text-xs text-white">${root.id}</span>
-                <strong class="text-indigo-200 text-xs">${root.role}</strong>
-                <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300">@${root.project}</span>
+      const workerIcons = {
+        'Code Reviewer': '🛠️',
+        'iOS Builder': '📱',
+        'Design System Guardian': '🎨',
+        'Backend Architect': '⚡',
+        'Master Orchestrator': '👑'
+      };
+
+      container.innerHTML = subagentsList.map(s => {
+        const icon = workerIcons[s.role] || '🤖';
+        const isRun = s.state === 'RUNNING';
+        return `
+          <div class="glass-card p-4 rounded-2xl flex flex-col justify-between space-y-3 hover:border-white/20 transition">
+            <div>
+              <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-xl">${icon}</span>
+                  <div>
+                    <h4 class="font-bold text-white text-xs">${s.role}</h4>
+                    <span class="text-[10px] text-indigo-300 mono">@${s.project}</span>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[9px] mono font-bold ${isRun ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'}">${s.state}</span>
               </div>
-              <span class="px-2 py-0.5 rounded text-[9px] mono text-emerald-300 bg-emerald-500/10 font-bold">${root.state}</span>
+              <p class="text-[11px] text-slate-300 leading-relaxed">${s.prompt}</p>
             </div>
-            <p class="text-[11px] text-slate-300 pl-4">${root.prompt}</p>
+
+            <div class="pt-2 border-t border-white/5 flex justify-between items-center text-[10px]">
+              <span class="mono text-slate-500">${s.id}</span>
+              <button onclick="killSubagent('${s.id}')" class="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 transition">
+                해산 / 종료
+              </button>
+            </div>
           </div>
         `;
-      }
-
-      html += `<div class="pl-5 border-l-2 border-dashed border-indigo-500/30 space-y-2.5 my-2">`;
-      children.forEach(c => {
-        const isRun = c.state === 'RUNNING';
-        html += `
-          <div class="p-2.5 bg-black/40 border border-white/5 rounded-xl space-y-1">
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full ${isRun ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}"></span>
-                <span class="mono text-[10px] text-slate-400 font-semibold">${c.id}</span>
-                <strong class="text-white text-xs">${c.role}</strong>
-                <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">@${c.project}</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="px-2 py-0.5 rounded text-[9px] mono ${isRun ? 'text-emerald-300 bg-emerald-500/10' : 'text-slate-400 bg-slate-800'}">${c.state}</span>
-                ${isRun ? `<button onclick="killSubagent('${c.id}')" class="px-1.5 py-0.5 text-[9px] rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30">Kill</button>` : ''}
-              </div>
-            </div>
-            <p class="text-[10px] text-slate-400 pl-4 truncate">${c.prompt}</p>
-          </div>
-        `;
-      });
-      html += `</div>`;
-      container.innerHTML = html;
+      }).join('');
     }
 
     async function handleDispatchSubagent(e) {
       e.preventDefault();
-      const parent_id = document.getElementById('sub-parent-sel').value;
-      const role = document.getElementById('sub-role').value;
-      const project = document.getElementById('sub-proj').value;
-      const prompt = document.getElementById('sub-prompt').value;
+      const role = document.getElementById('sub-role-select')?.value || 'General Specialist';
+      const project = document.getElementById('sub-proj')?.value || 'General';
+      const prompt = document.getElementById('sub-prompt')?.value || '';
 
       await fetch('/api/subagents/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ parent_id, role, project, prompt })
+        body: JSON.stringify({ parent_id: 'subagent-100', role, project, prompt })
       });
-      document.getElementById('sub-role').value = '';
-      document.getElementById('sub-prompt').value = '';
+      const pInput = document.getElementById('sub-prompt');
+      if (pInput) pInput.value = '';
       loadSubagents();
     }
 
@@ -1189,36 +1240,34 @@
         const isDev = p.is_dev;
         const isSelf = p.port === 8765;
         const borderClass = isSelf ? 'border-indigo-500/40 bg-indigo-950/20' : (isDev ? 'border-emerald-500/30' : 'border-white/5');
-        const statusBadge = isSelf ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300">Agent Hub 서버</span>' : (isDev ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300">내 프로젝트</span>' : '<span class="px-1.5 py-0.5 rounded text-[9px] bg-slate-800 text-slate-400">시스템/백그라운드</span>');
+        const statusBadge = isSelf ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Agent Hub 서버</span>' : (isDev ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">내 프로젝트</span>' : '<span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400">시스템</span>');
 
         return `
           <div class="glass-card p-4 rounded-2xl space-y-3 ${borderClass} flex flex-col justify-between hover:border-white/20 transition">
-            <div>
-              <div class="flex justify-between items-start mb-2">
-                <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center font-mono font-bold text-xs text-white">
-                    :${p.port}
+            <div class="space-y-2.5">
+              <div class="flex justify-between items-start gap-2">
+                <div class="space-y-0.5">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded-lg bg-slate-900 border border-white/10 text-white font-mono font-bold text-xs">PORT :${p.port}</span>
+                    <h4 class="font-bold text-sm text-white">${p.project_name}</h4>
                   </div>
-                  <div>
-                    <h4 class="font-bold text-sm text-white truncate max-w-[170px]" title="${p.project_name}">${p.project_name}</h4>
-                    <div class="text-[10px] text-slate-400 mono">PID: ${p.pid} · ${p.command}</div>
-                  </div>
+                  <div class="text-[10px] text-slate-400 mono">PID: ${p.pid} · 명령: ${p.command}</div>
                 </div>
                 ${statusBadge}
               </div>
 
-              <div class="bg-black/40 p-2.5 rounded-xl space-y-1 text-[11px] text-slate-400 mono select-all">
-                <div class="truncate text-slate-300" title="${p.cmdline}">CMD: ${p.cmdline.slice(0, 55)}...</div>
-                <div class="truncate text-slate-500 text-[10px]" title="${p.cwd}">CWD: ${p.cwd}</div>
+              <div class="bg-black/40 p-2.5 rounded-xl space-y-1.5 text-[11px] mono select-all">
+                <div class="text-slate-300 break-all leading-tight"><span class="text-slate-500">CMD:</span> ${p.cmdline}</div>
+                <div class="text-emerald-400/90 break-all text-[10px] pt-1 border-t border-white/5 leading-tight"><span class="text-slate-500">DIR:</span> ${p.cwd}</div>
               </div>
             </div>
 
-            <div class="pt-2 border-t border-white/10 flex justify-between items-center">
-              <a href="http://localhost:${p.port}" target="_blank" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+            <div class="pt-2.5 border-t border-white/10 flex justify-between items-center text-xs">
+              <a href="http://localhost:${p.port}" target="_blank" class="text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium">
                 <span>🔗 브라우저 열기</span>
               </a>
-              ${isSelf ? `<span class="text-[10px] text-slate-500">현재 서버 (보호됨)</span>` : `
-                <button onclick="killPortProcess(${p.port}, ${p.pid})" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition flex items-center gap-1 shadow">
+              ${isSelf ? `<span class="text-[10px] text-slate-500">현재 제어 서버</span>` : `
+                <button onclick="killPortProcess(${p.port}, ${p.pid})" class="px-3 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 font-semibold transition flex items-center gap-1 shadow">
                   <span>🛑 종료</span>
                 </button>
               `}
@@ -1291,6 +1340,7 @@
 
     // Boot & Periodic Live Quota Refresh
     loadProjects();
+    loadGitActivity();
     loadQuota();
     setInterval(loadQuota, 30000); // 30s live poll
   </script>

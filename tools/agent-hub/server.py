@@ -527,9 +527,34 @@ def parse_token_metrics():
             cur.execute("SELECT started_at, error_json FROM thread_turns WHERE (error_json LIKE '%limit%' OR error_json LIKE '%usage%') AND started_at >= ? ORDER BY started_at DESC LIMIT 1;", (now_s - 5 * 3600,))
             err_row = cur.fetchone()
             if err_row:
-                o_limit_hit = True
-                st = err_row[0]
-                o["resets_in_minutes"] = max(0, int((st + 3 * 3600 - now_s) / 60))
+                st, err_j = err_row
+                try:
+                    data = json.loads(err_j)
+                    msg = data.get("message", "")
+                    match = re.search(r"try again at (\d+):(\d+)\s*(AM|PM)", msg, re.IGNORECASE)
+                    if match:
+                        h = int(match.group(1))
+                        m = int(match.group(2))
+                        meridiem = match.group(3).upper()
+                        if meridiem == "PM" and h < 12: h += 12
+                        if meridiem == "AM" and h == 12: h = 0
+                        err_dt = datetime.fromtimestamp(st)
+                        reset_dt = err_dt.replace(hour=h, minute=m, second=0, microsecond=0)
+                        if reset_dt < err_dt:
+                            reset_dt += timedelta(days=1)
+                        reset_ts = int(reset_dt.timestamp())
+                        if now_s < reset_ts:
+                            o_limit_hit = True
+                            o["resets_in_minutes"] = max(1, int((reset_ts - now_s) / 60))
+                        else:
+                            o_limit_hit = False
+                            o["resets_in_minutes"] = 0
+                    else:
+                        if now_s < st + 3 * 3600:
+                            o_limit_hit = True
+                            o["resets_in_minutes"] = max(1, int((st + 3 * 3600 - now_s) / 60))
+                except Exception:
+                    pass
 
             o["last_5h"]["calls"] = o_5h_turns
             computed_5h_tok = o_5h_turns * 5000 + o_5h_items * 350
@@ -855,6 +880,63 @@ def get_docs_tree():
     return docs
 
 
+def get_git_commit_activity(days=91):
+    """Aggregate daily git commits across all repositories in ALLOWED_DEV_ROOT for heatmap (잔디)."""
+    import collections
+    from datetime import date
+    since_date = (date.today() - timedelta(days=days)).isoformat()
+    daily_commits = collections.Counter()
+    total_repos_scanned = 0
+
+    if os.path.exists(ALLOWED_DEV_ROOT):
+        for item in sorted(os.listdir(ALLOWED_DEV_ROOT)):
+            repo_path = os.path.join(ALLOWED_DEV_ROOT, item)
+            git_dir = os.path.join(repo_path, ".git")
+            if os.path.isdir(git_dir):
+                total_repos_scanned += 1
+                try:
+                    r = subprocess.run(["git", "-C", repo_path, "log", f"--since={since_date}", "--format=%as", "--no-merges"],
+                                       capture_output=True, text=True, timeout=2)
+                    if r.returncode == 0 and r.stdout.strip():
+                        for d_str in r.stdout.strip().splitlines():
+                            daily_commits[d_str] += 1
+                except Exception:
+                    pass
+
+    # Build calendar grid for 13 weeks (aligned to Monday start)
+    today = date.today()
+    start_dt = today - timedelta(days=days)
+    # Align start_dt to previous Monday (weekday 0)
+    start_dt = start_dt - timedelta(days=start_dt.weekday())
+
+    calendar_days = []
+    curr = start_dt
+    while curr <= today:
+        iso_str = curr.isoformat()
+        cnt = daily_commits.get(iso_str, 0)
+        # Determine intensity level 0..4
+        level = 0
+        if cnt >= 10: level = 4
+        elif cnt >= 5: level = 3
+        elif cnt >= 2: level = 2
+        elif cnt >= 1: level = 1
+
+        calendar_days.append({
+            "date": iso_str,
+            "count": cnt,
+            "level": level,
+            "day_of_week": curr.weekday() # 0 = Mon, 6 = Sun
+        })
+        curr += timedelta(days=1)
+
+    return {
+        "total_commits": sum(daily_commits.values()),
+        "active_days": len(daily_commits),
+        "repos_scanned": total_repos_scanned,
+        "calendar": calendar_days
+    }
+
+
 class AgentHubRequestHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=WEB_DIR, **kwargs)
@@ -880,6 +962,8 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
             self.handle_get_security_status()
         elif path == "/api/ports":
             self.handle_get_ports()
+        elif path == "/api/git/activity":
+            self.handle_get_git_activity()
         else:
             if path == "/" or not os.path.exists(os.path.join(WEB_DIR, path.lstrip("/"))):
                 self.path = "/index.html"
@@ -936,6 +1020,10 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
     def handle_get_ports(self):
         ports = get_active_dev_ports()
         self.json_response({"ports": ports})
+
+    def handle_get_git_activity(self):
+        act = get_git_commit_activity(days=91)
+        self.json_response(act)
 
     def handle_kill_port(self, payload):
         port = payload.get("port")

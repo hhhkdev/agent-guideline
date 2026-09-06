@@ -72,7 +72,10 @@ class AgentHubStatusBarApp: NSObject, NSApplicationDelegate {
                    let gpt5h = gpt["last_5h"] as? [String: Any],
                    let gptPct = gpt5h["pct_pro"] as? Double {
                     
-                    let titleStr = String(format: "⚡ C:%.0f%% G:%.0f%% O:%.0f%%", claudePct, geminiPct, gptPct)
+                    let cDot = claudePct >= 95.0 ? "🔴" : (claudePct >= 75.0 ? "🟠" : "🟡")
+                    let gDot = geminiPct >= 95.0 ? "🔴" : "🔵"
+                    let oDot = gptPct >= 95.0 ? "🔴" : "🟢"
+                    let titleStr = String(format: "%@ %.0f%%  %@ %.0f%%  %@ %.0f%%", cDot, claudePct, gDot, geminiPct, oDot, gptPct)
                     DispatchQueue.main.async {
                         self?.statusItem.button?.title = titleStr
                     }
