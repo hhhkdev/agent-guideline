@@ -401,6 +401,7 @@ def main():
     clone_p.add_argument("--name", help="Custom folder name", default=None)
     clone_p.add_argument("--template", help="Harness template", default="auto")
 
+    start_p = subparsers.add_parser("start", help="All-in-one: launch server, menubar monitor, and desktop app window")
     desktop_p = subparsers.add_parser("desktop", help="Launch Agent Hub as standalone macOS desktop app")
 
     serve_p = subparsers.add_parser("serve", help="Launch the Agent Hub Web Control Center")
@@ -441,7 +442,7 @@ def main():
         launch_menubar()
     elif args.command == "clone":
         clone_project(args.url, args.name, args.template)
-    elif args.command == "desktop":
+    elif args.command == "start" or args.command == "desktop":
         launch_desktop()
     elif args.command == "serve":
         serve_dashboard(args.port)
