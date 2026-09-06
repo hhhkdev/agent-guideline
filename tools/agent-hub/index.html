@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Agent Hub — Enterprise Multi-Project & Subagent Control Center</title>
+  <title>Agent Hub 2.0 — Enterprise Workspace & Subagent Control Center</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,288 +13,241 @@
     body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
     .glass-panel {
-      background: rgba(13, 17, 28, 0.75);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .glass-card {
-      background: rgba(18, 24, 38, 0.65);
-      backdrop-filter: blur(12px);
+      background: rgba(16, 22, 36, 0.70);
+      backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.07);
     }
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+    
+    /* Markdown Styles */
+    .markdown-body { color: #cbd5e1; font-size: 0.825rem; line-height: 1.65; }
+    .markdown-body h1 { font-size: 1.25rem; font-weight: 800; color: #f8fafc; margin: 1rem 0 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.3rem; }
+    .markdown-body h2 { font-size: 1.05rem; font-weight: 700; color: #e2e8f0; margin: 0.9rem 0 0.4rem; }
+    .markdown-body h3 { font-size: 0.925rem; font-weight: 600; color: #cbd5e1; margin: 0.7rem 0 0.3rem; }
+    .markdown-body p { margin-bottom: 0.6rem; }
+    .markdown-body ul, .markdown-body ol { margin-left: 1.2rem; margin-bottom: 0.6rem; list-style-type: disc; }
+    .markdown-body code { font-family: 'JetBrains Mono', monospace; background: rgba(0,0,0,0.4); padding: 0.15rem 0.35rem; border-radius: 0.3rem; font-size: 0.75rem; color: #a5b4fc; }
+    .markdown-body pre { background: #07090e; border: 1px solid rgba(255,255,255,0.08); padding: 0.8rem; border-radius: 0.75rem; overflow-x: auto; margin: 0.6rem 0; }
+    .markdown-body pre code { background: transparent; padding: 0; color: #e2e8f0; font-size: 0.75rem; }
+    .markdown-body table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.775rem; }
+    .markdown-body th, .markdown-body td { border: 1px solid rgba(255,255,255,0.1); padding: 0.4rem 0.6rem; }
+    .markdown-body th { background: rgba(255,255,255,0.04); font-weight: 600; color: #f1f5f9; }
+    .markdown-body blockquote { border-left: 3px solid #6366f1; padding-left: 0.8rem; color: #94a3b8; font-style: italic; margin: 0.6rem 0; }
   </style>
 </head>
-<body class="bg-[#04060a] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white relative overflow-x-hidden">
+<body class="bg-[#030508] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white relative overflow-x-hidden">
 
-  <!-- Ambient Glow Backgrounds -->
-  <div class="fixed top-0 left-1/4 w-[450px] lg:w-[650px] h-[300px] bg-indigo-600/[0.08] rounded-full blur-[140px] pointer-events-none -z-10"></div>
-  <div class="fixed bottom-0 right-10 w-[350px] lg:w-[500px] h-[300px] bg-purple-600/[0.08] rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <!-- Ambient Glow Effects -->
+  <div class="fixed top-0 left-1/4 w-[500px] h-[260px] bg-indigo-600/[0.07] rounded-full blur-[140px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-0 right-10 w-[400px] h-[260px] bg-purple-600/[0.07] rounded-full blur-[140px] pointer-events-none -z-10"></div>
 
-  <!-- Header Navigation (Fully Responsive) -->
-  <header class="sticky top-0 z-50 glass-panel border-b border-white/[0.07] px-3 sm:px-6 py-2.5 transition-all">
-    <div class="max-w-[1700px] mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5">
+  <!-- Ultra Compact 1-Row Header (No Scrolling Needed) -->
+  <header class="sticky top-0 z-50 glass-panel border-b border-white/[0.07] px-3 sm:px-5 py-2 transition-all">
+    <div class="max-w-[1750px] mx-auto flex items-center justify-between gap-3">
       
-      <!-- Brand & Status -->
-      <div class="flex items-center justify-between w-full md:w-auto">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 border border-white/20 flex-shrink-0">
-            <span class="mono font-black text-xs text-white">AH</span>
-          </div>
-          <div>
-            <div class="flex items-center gap-1.5">
-              <h1 class="font-bold text-xs sm:text-sm tracking-tight text-white">Agent Hub Control Center</h1>
-              <span class="px-1.5 py-0.2 text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                SECURE
-              </span>
-            </div>
-            <p class="text-[10px] text-slate-400">프로젝트 관리 · 3대 AI 쿼터(Claude·Gemini·GPT) · 스킬 마켓 · 서브에이전트</p>
+      <!-- Minimalist Brand & Quick Status -->
+      <div class="flex items-center gap-2.5 flex-shrink-0">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-md text-white font-black text-xs mono">
+          AH
+        </div>
+        <div class="hidden sm:block">
+          <div class="flex items-center gap-1.5 leading-none">
+            <span class="font-bold text-xs tracking-tight text-white">Agent Hub 2.0</span>
+            <span class="px-1.5 py-0.2 text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full">SANDBOX</span>
           </div>
         </div>
       </div>
 
-      <!-- Navigation Tabs (Fluid Horizontal Scroll for Mobile) -->
-      <nav class="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-white/[0.06] overflow-x-auto max-w-full w-full md:w-auto no-scrollbar">
-        <button onclick="switchTab('projects')" id="tab-btn-projects" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1">
-          <span>📁</span> <span>프로젝트</span>
+      <!-- Segmented Navigation (Fits Any Screen, Zero Horizontal Scroll) -->
+      <nav class="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-white/[0.08] flex-shrink-0">
+        <button onclick="switchTab('projects')" id="tab-btn-projects" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition flex items-center gap-1">
+          <span>📁</span> <span class="hidden md:inline">프로젝트</span>
         </button>
-        <button onclick="switchTab('quota')" id="tab-btn-quota" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
-          <span>⏳</span> <span>3대 AI 플랜 쿼터</span>
+        <button onclick="switchTab('quota')" id="tab-btn-quota" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
+          <span>⏳</span> <span class="hidden md:inline">3대 AI 쿼터</span>
         </button>
-        <button onclick="switchTab('skills')" id="tab-btn-skills" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
-          <span>⭐</span> <span>스킬 마켓플레이스</span>
+        <button onclick="switchTab('skills')" id="tab-btn-skills" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
+          <span>⭐</span> <span class="hidden md:inline">스킬 마켓</span>
         </button>
-        <button onclick="switchTab('subagents')" id="tab-btn-subagents" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
-          <span>🤖</span> <span>서브에이전트 CLI</span>
+        <button onclick="switchTab('subagents')" id="tab-btn-subagents" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
+          <span>🤖</span> <span class="hidden md:inline">서브에이전트</span>
         </button>
-        <button onclick="switchTab('wizard')" id="tab-btn-wizard" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
-          <span>✨</span> <span>새 프로젝트</span>
+        <button onclick="switchTab('github')" id="tab-btn-github" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
+          <span>🐙</span> <span class="hidden md:inline">GitHub 연동</span>
         </button>
-        <button onclick="switchTab('docs')" id="tab-btn-docs" class="tab-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
-          <span>📖</span> <span>문서 뷰어</span>
+        <button onclick="switchTab('docs')" id="tab-btn-docs" class="tab-btn px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition flex items-center gap-1">
+          <span>📖</span> <span class="hidden md:inline">문서</span>
         </button>
       </nav>
+
+      <!-- Quick Action: Quota HUD Toggle & Shortkey Hint -->
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="toggleFloatingHUD()" title="단축키 'Q' 또는 클릭" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/[0.08] text-xs font-mono flex items-center gap-1.5 transition">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="hidden lg:inline text-[11px] text-slate-400">Claude 5h:</span>
+          <span id="header-claude-mini-pct" class="font-bold text-amber-300">79.1%</span>
+          <kbd class="hidden sm:inline px-1 py-0.2 text-[9px] bg-slate-800 border border-white/10 rounded text-slate-400">Q</kbd>
+        </button>
+      </div>
     </div>
   </header>
 
   <!-- Main Workspace -->
-  <main class="flex-1 p-3 sm:p-5 lg:p-6 max-w-[1700px] w-full mx-auto space-y-5">
+  <main class="flex-1 p-3 sm:p-5 lg:p-6 max-w-[1750px] w-full mx-auto space-y-4">
 
     <!-- ======================================================== -->
-    <!-- TAB 1: PROJECTS (Active vs Archived Filter)              -->
+    <!-- TAB 1: PROJECTS & WORKSPACE ACTIVITY                     -->
     <!-- ======================================================== -->
     <section id="tab-projects" class="tab-content space-y-4">
-      <div class="glass-panel p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
-        <!-- Filter Pills -->
+      <div class="glass-panel p-3 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+        <!-- Filter & Family Pills -->
         <div class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
-          <button onclick="setProjectFilter('active')" id="filter-pill-active" class="filter-pill px-3 py-1 rounded-xl text-xs font-bold bg-indigo-600 text-white transition flex items-center gap-1.5 shadow-sm">
-            <span>🚀 진행 중인 프로젝트</span>
+          <button onclick="setProjectFilter('active')" id="filter-pill-active" class="filter-pill px-3 py-1 rounded-xl text-xs font-bold bg-indigo-600 text-white transition flex items-center gap-1.5">
+            <span>🔥 최근 활동 (30일 내)</span>
             <span id="badge-active-count" class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px]">0</span>
           </button>
           <button onclick="setProjectFilter('all')" id="filter-pill-all" class="filter-pill px-3 py-1 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900/60 border border-white/[0.06] transition flex items-center gap-1.5">
-            <span>전체</span>
+            <span>전체 프로젝트</span>
             <span id="badge-all-count" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">0</span>
           </button>
           <button onclick="setProjectFilter('archived')" id="filter-pill-archived" class="filter-pill px-3 py-1 rounded-xl text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900/60 border border-white/[0.06] transition flex items-center gap-1.5">
-            <span>📦 보관/숨김 목록</span>
+            <span>📦 보관/숨김</span>
             <span id="badge-archived-count" class="px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px]">0</span>
           </button>
         </div>
 
+        <!-- Search & Quick Family Filter -->
         <div class="flex items-center gap-2 w-full sm:w-auto">
-          <input type="text" id="project-search-input" oninput="renderFilteredProjects()" placeholder="프로젝트/스택 검색..." class="w-full sm:w-56 px-3 py-1.5 text-xs bg-slate-950/80 border border-white/[0.08] rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
-          <button onclick="loadProjects()" class="px-2.5 py-1.5 text-xs font-medium rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/[0.08] transition">🔄</button>
+          <select id="family-filter-select" onchange="renderFilteredProjects()" class="px-2.5 py-1 text-xs bg-slate-950/80 border border-white/[0.08] rounded-xl text-slate-300 focus:outline-none">
+            <option value="all">모든 패밀리 (Multi-repo)</option>
+            <option value="teumteum">teumteum (앱·어드민·배포)</option>
+            <option value="1D1S">1D1S (클라이언트·어드민·DS)</option>
+            <option value="hivcd">hivcd (프론트·백엔드·DS)</option>
+            <option value="please-2000won">please-2000won (풀스택)</option>
+            <option value="CampusYA">CampusYA</option>
+          </select>
+          <input type="text" id="project-search-input" oninput="renderFilteredProjects()" placeholder="검색 (이름, 스택, 브랜치)..." class="w-full sm:w-48 px-3 py-1 text-xs bg-slate-950/80 border border-white/[0.08] rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+          <button onclick="loadProjects()" title="새로고침" class="px-2.5 py-1 text-xs font-medium rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/[0.08] transition">🔄</button>
         </div>
       </div>
 
+      <!-- Project Cards Grid -->
       <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5"></div>
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 2: 3-PROVIDER PLAN QUOTAS (Claude · Gemini · GPT)    -->
+    <!-- TAB 2: UNIFIED 3-PROVIDER PLAN QUOTAS                    -->
     <!-- ======================================================== -->
-    <section id="tab-quota" class="tab-content hidden space-y-5">
-      
-      <div class="glass-panel p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3">
+    <section id="tab-quota" class="tab-content hidden space-y-4">
+      <div class="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
         <div>
-          <div class="flex items-center gap-2">
-            <h2 class="text-sm sm:text-base font-bold text-white">3대 AI 프로바이더(Claude · Gemini · GPT) 플랜 할당량 뷰</h2>
+          <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <span>⏳ 3대 AI 프로바이더 5시간 롤링 & 주간 할당량 (Unified Quota View)</span>
             <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Live Rolling Window</span>
-          </div>
-          <p class="text-xs text-slate-400 mt-0.5">단순 비용 계산이 아닌, 실제 결제하신 각 플랫폼 구독 요금제의 5시간/3시간/일일/주간 허용량 소진율(%)을 추적합니다.</p>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">단순 요금 계산이 아닌, 실제 결제 플랜의 5시간 및 주간 소진 한도(Rate Limits)를 모든 모델에 동일한 기준으로 시각화합니다.</p>
+        </div>
+        <div class="text-xs mono text-slate-400 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
+          단축키: <kbd class="px-1.5 py-0.5 bg-slate-800 text-indigo-300 rounded font-bold">Q</kbd> 또는 <kbd class="px-1.5 py-0.5 bg-slate-800 text-indigo-300 rounded font-bold">2</kbd>
         </div>
       </div>
 
-      <!-- 3-Provider Cards Grid (Responsive 1/2/3 cols) -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        <!-- 1. Claude Card (5h & 7d) -->
-        <div class="glass-card p-5 rounded-2xl space-y-3.5 border-amber-500/20">
-          <div class="flex justify-between items-start">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-              <h3 class="font-bold text-sm text-amber-200">Anthropic Claude</h3>
-            </div>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">Claude Code</span>
-          </div>
-
-          <!-- 5h Circular Gauge -->
-          <div class="bg-black/30 p-3.5 rounded-xl border border-white/5 flex items-center gap-4">
-            <div class="relative w-20 h-20 flex-shrink-0 flex items-center justify-center">
-              <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path id="claude-5h-circ" class="text-amber-400 transition-all duration-1000" stroke-width="3.5" stroke-dasharray="79.1, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-              </svg>
-              <div class="absolute text-center">
-                <span class="text-base font-black mono text-white">79.1%</span>
-                <span class="block text-[8px] text-slate-400">5h 소진</span>
-              </div>
-            </div>
-            <div class="flex-1 space-y-1 text-[11px]">
-              <div class="flex justify-between text-slate-400"><span>5시간 토큰:</span><span class="mono text-white font-semibold">237,306</span></div>
-              <div class="flex justify-between text-slate-400"><span>호출 횟수:</span><span class="mono text-slate-300">365 calls</span></div>
-              <div class="text-[10px] text-amber-300 mono">⏱️ 리셋 약 165분 후</div>
-            </div>
-          </div>
-
-          <!-- Weekly Meter -->
-          <div class="space-y-1 text-xs">
-            <div class="flex justify-between text-slate-400 text-[11px]">
-              <span>주간(7일) 누적 소진:</span>
-              <span class="mono text-white font-semibold">56.5% (2.82M / 5M)</span>
-            </div>
-            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-              <div class="bg-amber-400 h-full rounded-full" style="width: 56.5%"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2. Gemini Card (Daily & TPM) -->
-        <div class="glass-card p-5 rounded-2xl space-y-3.5 border-blue-500/20">
-          <div class="flex justify-between items-start">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
-              <h3 class="font-bold text-sm text-blue-200">Google Gemini</h3>
-            </div>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">Antigravity IDE</span>
-          </div>
-
-          <!-- Daily Circular Gauge -->
-          <div class="bg-black/30 p-3.5 rounded-xl border border-white/5 flex items-center gap-4">
-            <div class="relative w-20 h-20 flex-shrink-0 flex items-center justify-center">
-              <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path class="text-blue-400 transition-all duration-1000" stroke-width="3.5" stroke-dasharray="52.0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-              </svg>
-              <div class="absolute text-center">
-                <span class="text-base font-black mono text-white">52.0%</span>
-                <span class="block text-[8px] text-slate-400">Daily</span>
-              </div>
-            </div>
-            <div class="flex-1 space-y-1 text-[11px]">
-              <div class="flex justify-between text-slate-400"><span>일일 토큰:</span><span class="mono text-white font-semibold">1,040,000</span></div>
-              <div class="flex justify-between text-slate-400"><span>요청 횟수:</span><span class="mono text-slate-300">382 / 1,500</span></div>
-              <div class="text-[10px] text-blue-300 mono">📅 리셋 00:00 UTC (오전 9시)</div>
-            </div>
-          </div>
-
-          <!-- TPM Burst Meter -->
-          <div class="space-y-1 text-xs">
-            <div class="flex justify-between text-slate-400 text-[11px]">
-              <span>분당 토큰(TPM) 버스트:</span>
-              <span class="mono text-white font-semibold">14.5% (145k / 1M)</span>
-            </div>
-            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-              <div class="bg-blue-400 h-full rounded-full" style="width: 14.5%"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. GPT Card (3h & Weekly) -->
-        <div class="glass-card p-5 rounded-2xl space-y-3.5 border-emerald-500/20">
-          <div class="flex justify-between items-start">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-              <h3 class="font-bold text-sm text-emerald-200">OpenAI GPT / Codex</h3>
-            </div>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Codex CLI</span>
-          </div>
-
-          <!-- 3-Hour Message Circular Gauge -->
-          <div class="bg-black/30 p-3.5 rounded-xl border border-white/5 flex items-center gap-4">
-            <div class="relative w-20 h-20 flex-shrink-0 flex items-center justify-center">
-              <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path class="text-emerald-400 transition-all duration-1000" stroke-width="3.5" stroke-dasharray="35.0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-              </svg>
-              <div class="absolute text-center">
-                <span class="text-base font-black mono text-white">35.0%</span>
-                <span class="block text-[8px] text-slate-400">3h Limit</span>
-              </div>
-            </div>
-            <div class="flex-1 space-y-1 text-[11px]">
-              <div class="flex justify-between text-slate-400"><span>3시간 메시지:</span><span class="mono text-white font-semibold">14 / 40 msgs</span></div>
-              <div class="flex justify-between text-slate-400"><span>사용 토큰:</span><span class="mono text-slate-300">~65k tokens</span></div>
-              <div class="text-[10px] text-emerald-300 mono">⏱️ 리셋 약 75분 후</div>
-            </div>
-          </div>
-
-          <!-- Weekly Cap Meter -->
-          <div class="space-y-1 text-xs">
-            <div class="flex justify-between text-slate-400 text-[11px]">
-              <span>주간 토큰 소진율:</span>
-              <span class="mono text-white font-semibold">84.0% (420k / 500k)</span>
-            </div>
-            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-              <div class="bg-emerald-400 h-full rounded-full" style="width: 84.0%"></div>
-            </div>
-          </div>
-        </div>
-
+      <!-- 3 Providers Cards (Standardized 5h & Weekly) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="quota-cards-container">
+        <!-- Rendered via JS for live sync -->
       </div>
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 3: SKILLS & TOOLS MARKETPLACE (Reviews & Pros/Cons)  -->
+    <!-- TAB 3: DYNAMIC SKILLS MARKETPLACE & WEBHOOK INGESTION    -->
     <!-- ======================================================== -->
     <section id="tab-skills" class="tab-content hidden space-y-4">
       <div class="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
         <div>
           <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-            <span>⭐ 검증된 AI 스킬 & 도구 마켓플레이스</span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">Curated & Tested</span>
+            <span>⭐ 검증된 AI 스킬 카탈로그 & 동적 확장</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300">Curated & Dynamic</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-0.5">실제 개발자들의 평점, 장단점 비교, 어떤 상황에 유리한지 사람들의 의견을 종합한 카탈로그입니다.</p>
+          <p class="text-xs text-slate-400 mt-0.5">필요한 스킬을 직접 검색/등록하거나, 웹훅(/api/skills/webhook)을 통해 크롤러에서 자동으로 긁어와 축적할 수 있습니다.</p>
         </div>
-        <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-white/10 text-xs">
-          <button onclick="filterSkills('all')" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-semibold">전체</button>
-          <button onclick="filterSkills('UI & Design')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">UI/Design</button>
-          <button onclick="filterSkills('Mobile')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">Mobile</button>
-          <button onclick="filterSkills('Frontend & API')" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">API</button>
+        <div class="flex items-center gap-2">
+          <button onclick="openAddSkillModal()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition flex items-center gap-1.5 shadow-md">
+            <span>+</span> <span>신규 스킬 직접 등록</span>
+          </button>
+          <button onclick="showWebhookGuide()" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/10 text-xs transition">
+            🔌 웹훅 API 안내
+          </button>
         </div>
       </div>
 
-      <div id="skills-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Injected via JS -->
+      <!-- Filter Categories -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <button onclick="filterSkills('all')" class="skill-filter-btn px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-semibold">전체</button>
+        <button onclick="filterSkills('UI & Design')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-slate-900/60 border border-white/5">UI / Design</button>
+        <button onclick="filterSkills('Mobile')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-slate-900/60 border border-white/5">Mobile / iOS</button>
+        <button onclick="filterSkills('Frontend & API')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-slate-900/60 border border-white/5">Frontend & API</button>
+        <button onclick="filterSkills('DevOps & Git')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-slate-900/60 border border-white/5">DevOps & Git</button>
+        <button onclick="filterSkills('Planning')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-slate-900/60 border border-white/5">기획 / PRD</button>
+        <button onclick="filterSkills('Community & Automation')" class="skill-filter-btn px-2.5 py-1 rounded-lg text-slate-400 hover:text-white bg-slate-900/60 border border-white/5">Webhook 등록</button>
       </div>
+
+      <div id="skills-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 4: SUBAGENT CLI CONSOLE                              -->
+    <!-- TAB 4: VISUAL SUBAGENT ORCHESTRATION PIPELINE            -->
     <!-- ======================================================== -->
     <section id="tab-subagents" class="tab-content hidden space-y-4">
+      <div class="glass-panel p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <span>🤖 서브에이전트 시각적 오케스트레이션 & 파이프라인</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Live DAG Controller</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">마스터 에이전트와 도메인별 서브에이전트의 위임 관계(Hierarchy Tree)를 시각적으로 확인하고 직접 발주 및 중단할 수 있습니다.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="killAllSubagents()" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition">
+            🛑 전체 에이전트 일괄 회수 (Kill All)
+          </button>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Visual Pipeline / Hierarchy Tree Column -->
+        <div class="col-span-12 lg:col-span-7 glass-panel p-4 rounded-2xl space-y-3">
+          <div class="flex justify-between items-center border-b border-white/10 pb-2">
+            <h3 class="font-bold text-xs text-slate-200">🌳 에이전트 협업 트리 (Execution Tree)</h3>
+            <span class="text-[10px] text-slate-400 mono">계층적 위임 구조</span>
+          </div>
+          <div id="subagents-tree-view" class="space-y-3 py-2">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Dispatch New Subagent Form -->
         <div class="col-span-12 lg:col-span-5 glass-card p-4 rounded-2xl space-y-3 text-xs">
           <h3 class="font-bold text-slate-200 border-b border-white/10 pb-2">⚡ 신규 서브에이전트 발주 (Dispatch)</h3>
-          <form onsubmit="dispatchSubagent(event)" class="space-y-3">
+          <form onsubmit="handleDispatchSubagent(event)" class="space-y-3">
             <div>
-              <label class="text-slate-400 block mb-1">역할 (Role)</label>
-              <input type="text" id="sub-role" required placeholder="예: Flutter Token Guardian" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
+              <label class="text-slate-400 block mb-1">상위 에이전트 (Parent Node)</label>
+              <select id="sub-parent-sel" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
+                <option value="subagent-100">subagent-100 (Master Orchestrator)</option>
+                <option value="subagent-102">subagent-102 (iOS Swift Widget Engineer)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">부여할 역할 (Role)</label>
+              <input type="text" id="sub-role" required placeholder="예: Backend Query Optimizer" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
             </div>
             <div>
               <label class="text-slate-400 block mb-1">대상 프로젝트</label>
@@ -302,92 +256,256 @@
                 <option value="teumteum-mobile">teumteum-mobile</option>
                 <option value="1D1S-client">1D1S-client</option>
                 <option value="hivcd-frontend">hivcd-frontend</option>
+                <option value="please-2000won-frontend">please-2000won-frontend</option>
               </select>
             </div>
             <div>
-              <label class="text-slate-400 block mb-1">프롬프트</label>
-              <textarea id="sub-prompt" rows="2" required placeholder="수행할 구체적인 작업 지시" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white"></textarea>
+              <label class="text-slate-400 block mb-1">작업 지시 프롬프트</label>
+              <textarea id="sub-prompt" rows="2" required placeholder="서브에이전트가 완수할 구체적인 태스크를 입력하세요." class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white"></textarea>
             </div>
-            <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition">
-              🚀 서브에이전트 발주 (CLI Dispatch)
+            <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md">
+              🚀 파이프라인에 서브에이전트 투입
             </button>
           </form>
           <div class="bg-black/50 p-2.5 rounded-xl border border-white/5 text-[10px] mono text-indigo-300 select-all">
             CLI: python3 tools/harness-cli.py subagent dispatch --role "..." --project "..."
           </div>
         </div>
+      </div>
+    </section>
 
-        <div class="col-span-12 lg:col-span-7 glass-panel p-4 rounded-2xl flex flex-col justify-between text-xs">
-          <div>
-            <h3 class="font-bold text-slate-200 border-b border-white/10 pb-2 mb-3">📋 활성 서브에이전트 레지스트리</h3>
-            <div id="subagents-list" class="space-y-2"></div>
+    <!-- ======================================================== -->
+    <!-- TAB 5: GITHUB INTEGRATION & PROJECT CREATION/CLONE       -->
+    <!-- ======================================================== -->
+    <section id="tab-github" class="tab-content hidden space-y-4 max-w-4xl mx-auto">
+      <div class="glass-panel p-5 rounded-2xl space-y-5 text-xs">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <span>🐙 GitHub 연동 & 1-Click Clone / 생성 매니저</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Sandbox Isolation</span>
+          </h2>
+          <p class="text-slate-400 mt-1">GitHub 링크만 입력하면 샌드박스 내부(/Users/hhhk/dev)에 안전하게 클론하고 하네스를 자동 구성합니다.</p>
+        </div>
+
+        <!-- Mode Tabs: 1. Clone vs 2. Create New Repo -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Mode 1: 1-Click Clone -->
+          <div class="glass-card p-4 rounded-xl space-y-3">
+            <div class="flex items-center gap-2 pb-2 border-b border-white/10">
+              <span class="text-sm">📥</span>
+              <h3 class="font-bold text-white text-xs">GitHub 레포지토리 Clone</h3>
+            </div>
+            <form onsubmit="handleCloneSubmit(event)" class="space-y-3">
+              <div>
+                <label class="text-slate-400 block mb-1">GitHub 저장소 URL</label>
+                <input type="text" id="clone-url" required placeholder="https://github.com/hhhkdev/my-repo.git" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white mono text-[11px]">
+              </div>
+              <div>
+                <label class="text-slate-400 block mb-1">로컬 폴더명 (생략 시 레포명 자동 사용)</label>
+                <div class="flex">
+                  <span class="px-2.5 py-1.5 bg-slate-900 border border-r-0 border-white/10 text-slate-500 mono rounded-l-xl">dev/</span>
+                  <input type="text" id="clone-name" placeholder="my-repo" class="flex-1 px-3 py-1.5 bg-slate-950 border border-white/10 rounded-r-xl text-white mono text-[11px]">
+                </div>
+              </div>
+              <div>
+                <label class="text-slate-400 block mb-1">하네스 템플릿 적용</label>
+                <select id="clone-template" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
+                  <option value="auto">자동 감지 (Auto Detect)</option>
+                  <option value="nextjs-fullstack">Next.js Fullstack</option>
+                  <option value="react-native-expo">React Native Expo</option>
+                  <option value="flutter-riverpod">Flutter Riverpod</option>
+                  <option value="spring-boot-jvm">Spring Boot JVM</option>
+                  <option value="design-system">Design System</option>
+                  <option value="universal">Universal</option>
+                </select>
+              </div>
+              <button type="submit" id="btn-clone-submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md">
+                📥 1-Click 안전 Clone 및 하네스 주입
+              </button>
+            </form>
+            <div id="clone-result-box" class="hidden p-2.5 bg-black/60 rounded-xl border border-white/10 text-[11px]"></div>
           </div>
-          <div class="mt-3 pt-2 border-t border-white/10 text-[10px] text-slate-500 flex justify-between">
-            <span>완료 시 즉시 Kill하여 토큰 보호</span>
-            <code class="mono text-rose-400">manage_subagents(kill_all)</code>
+
+          <!-- Mode 2: Create New Repo with Scaffold -->
+          <div class="glass-card p-4 rounded-xl space-y-3">
+            <div class="flex items-center gap-2 pb-2 border-b border-white/10">
+              <span class="text-sm">✨</span>
+              <h3 class="font-bold text-white text-xs">새 프로젝트 & GitHub 연결</h3>
+            </div>
+            <form onsubmit="handleCreateWithGit(event)" class="space-y-3">
+              <div>
+                <label class="text-slate-400 block mb-1">신규 프로젝트명</label>
+                <div class="flex">
+                  <span class="px-2.5 py-1.5 bg-slate-900 border border-r-0 border-white/10 text-slate-500 mono rounded-l-xl">dev/</span>
+                  <input type="text" id="new-proj-name" required placeholder="awesome-service" class="flex-1 px-3 py-1.5 bg-slate-950 border border-white/10 rounded-r-xl text-white mono text-[11px]">
+                </div>
+              </div>
+              <div>
+                <label class="text-slate-400 block mb-1">하네스 스택 템플릿</label>
+                <select id="new-proj-tpl" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
+                  <option value="nextjs-fullstack">Next.js Fullstack (App Router, Tailwind)</option>
+                  <option value="react-native-expo">React Native Expo (Swift Widgets)</option>
+                  <option value="flutter-riverpod">Flutter Riverpod (Clean Architecture)</option>
+                  <option value="spring-boot-jvm">Spring Boot 3 (JPA Record DTO)</option>
+                  <option value="design-system">Design System (Storybook)</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-slate-400 block mb-1">연결할 GitHub 원격 URL (선택 사항)</label>
+                <input type="text" id="new-proj-remote" placeholder="https://github.com/hhhkdev/awesome-service.git" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white mono text-[11px]">
+              </div>
+              <button type="submit" id="btn-create-submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-md">
+                🚀 프로젝트 생성 및 Git 초기화
+              </button>
+            </form>
+            <div id="create-result-box" class="hidden p-2.5 bg-black/60 rounded-xl border border-white/10 text-[11px]"></div>
           </div>
+
         </div>
       </div>
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 5: WIZARD                                            -->
+    <!-- TAB 6: MARKDOWN DOCUMENT VIEWER                          -->
     <!-- ======================================================== -->
-    <section id="tab-wizard" class="tab-content hidden max-w-xl mx-auto glass-panel p-5 rounded-2xl space-y-4 text-xs">
-      <h2 class="text-sm font-bold text-white border-b border-white/10 pb-2">✨ 신규 프로젝트 안전 생성</h2>
-      <form onsubmit="handleWiz(event)" class="space-y-3">
-        <div>
-          <label class="block text-slate-400 mb-1">폴더명 (샌드박스 내부)</label>
-          <div class="flex">
-            <span class="px-3 py-1.5 bg-slate-900 border border-r-0 border-white/10 text-slate-400 mono rounded-l-xl">/Users/hhhk/dev/</span>
-            <input type="text" id="wiz-in" required placeholder="my-awesome-app" class="flex-1 px-3 py-1.5 bg-slate-950 border border-white/10 rounded-r-xl text-white mono">
-          </div>
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">하네스 템플릿</label>
-          <select id="wiz-sel" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
-            <option value="nextjs-fullstack">Next.js Fullstack (App Router, Tailwind, Knip)</option>
-            <option value="react-native-expo">React Native Expo (Swift Widgets, EAS OTA)</option>
-            <option value="flutter-riverpod">Flutter Riverpod (AppColors, flutter analyze)</option>
-            <option value="spring-boot-jvm">Spring Boot 3 (JPA Record DTO, Docker)</option>
-            <option value="design-system">Design System (Storybook, Tokens)</option>
-          </select>
-        </div>
-        <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition">
-          🚀 프로젝트 생성 및 하네스 구축
-        </button>
-      </form>
-      <div id="wiz-done" class="hidden p-3 bg-black/60 rounded-xl border border-white/5 space-y-1">
-        <div class="text-emerald-400 font-bold">생성 완료! GitHub 연결 커맨드:</div>
-        <pre id="wiz-cmd" class="text-[10px] mono text-slate-300 select-all"></pre>
-      </div>
-    </section>
-
-    <!-- ======================================================== -->
-    <!-- TAB 6: DOCS VIEWER                                       -->
-    <!-- ======================================================== -->
-    <section id="tab-docs" class="tab-content hidden grid grid-cols-12 gap-4 h-[calc(100vh-140px)]">
-      <div class="col-span-12 lg:col-span-4 glass-panel p-4 rounded-2xl flex flex-col h-full text-xs">
-        <h3 class="font-bold text-slate-200 border-b border-white/10 pb-2 mb-2">agent-guideline 문서 라이브러리</h3>
+    <section id="tab-docs" class="tab-content hidden grid grid-cols-12 gap-4 h-[calc(100vh-120px)]">
+      <div class="col-span-12 lg:col-span-4 glass-panel p-3.5 rounded-2xl flex flex-col h-full text-xs">
+        <h3 class="font-bold text-slate-200 border-b border-white/10 pb-2 mb-2 flex items-center justify-between">
+          <span>agent-guideline 문서 목록</span>
+          <span class="text-[10px] text-indigo-400 mono">Markdown v2</span>
+        </h3>
         <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="docs-tree-container"></div>
       </div>
       <div class="col-span-12 lg:col-span-8 glass-panel p-4 rounded-2xl flex flex-col h-full text-xs">
         <div class="flex justify-between items-center border-b border-white/10 pb-2 mb-2">
-          <span id="doc-active-title" class="mono font-bold text-indigo-400">문서를 선택하세요</span>
-          <button onclick="copyDocContent()" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 mono text-[10px]">📋 복사</button>
+          <span id="doc-active-title" class="mono font-bold text-indigo-400 truncate max-w-md">문서를 선택하세요</span>
+          <button onclick="copyDocContent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 mono text-[10px] transition">📋 원본 복사</button>
         </div>
-        <pre id="doc-content-body" class="flex-1 bg-slate-950/80 p-3 rounded-xl border border-white/5 overflow-y-auto mono text-slate-300 leading-relaxed whitespace-pre-wrap select-text"></pre>
+        <div id="doc-content-body" class="flex-1 bg-slate-950/90 p-4 rounded-xl border border-white/5 overflow-y-auto markdown-body select-text"></div>
       </div>
     </section>
 
   </main>
 
-  <!-- Script Logic -->
+  <!-- ======================================================== -->
+  <!-- FLOATING QUOTA HUD (Quick-Glance Overlay)                  -->
+  <!-- ======================================================== -->
+  <div id="floating-hud-widget" class="fixed bottom-4 right-4 z-50">
+    <div onclick="toggleFloatingHUD()" class="cursor-pointer bg-slate-950/90 hover:bg-slate-900 border border-white/15 p-2.5 rounded-2xl shadow-2xl flex items-center gap-3 transition">
+      <div class="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-300 text-xs font-bold mono">
+        HUD
+      </div>
+      <div class="text-[11px] leading-tight pr-1">
+        <div class="text-slate-400 text-[10px] flex items-center gap-1">
+          <span>3대 AI 롤링 쿼터</span>
+          <kbd class="text-[8px] bg-slate-800 px-1 rounded text-slate-400">Q</kbd>
+        </div>
+        <div class="flex items-center gap-2 font-mono font-bold text-[11px] mt-0.5">
+          <span class="text-amber-400">C: <span id="hud-c-val">79%</span></span>
+          <span class="text-blue-400">G: <span id="hud-g-val">45%</span></span>
+          <span class="text-emerald-400">O: <span id="hud-o-val">65%</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expanded Popup Modal -->
+    <div id="floating-hud-popover" class="hidden absolute bottom-12 right-0 w-80 sm:w-96 glass-panel p-4 rounded-2xl shadow-2xl border border-white/20 space-y-3">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2">
+        <span class="font-bold text-xs text-white">⚡ 실시간 5시간 롤링 소진율</span>
+        <button onclick="toggleFloatingHUD()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+      <div id="hud-popover-content" class="space-y-2.5 text-xs">
+        <!-- Live gauges injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add New Skill Manually -->
+  <div id="modal-add-skill" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel max-w-md w-full p-5 rounded-2xl border border-white/20 space-y-3 text-xs">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2">
+        <h3 class="font-bold text-white text-sm">✨ 신규 AI 스킬 등록</h3>
+        <button onclick="closeAddSkillModal()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <form onsubmit="handleAddSkillSubmit(event)" class="space-y-2.5">
+        <div>
+          <label class="text-slate-400 block mb-1">스킬 명칭 (Name)</label>
+          <input type="text" id="add-skill-name" required placeholder="예: nextjs-seo-meta-generator" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">카테고리</label>
+          <select id="add-skill-category" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
+            <option value="Frontend & API">Frontend & API</option>
+            <option value="UI & Design">UI & Design</option>
+            <option value="Mobile">Mobile</option>
+            <option value="DevOps & Git">DevOps & Git</option>
+            <option value="Planning">Planning</option>
+            <option value="Community & Automation">Community & Automation</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">핵심 장점 (Pros)</label>
+          <input type="text" id="add-skill-pros" required placeholder="예: OpenGraph 태그 및 JSON-LD 자동 생성" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
+        </div>
+        <div>
+          <label class="text-slate-400 block mb-1">한줄 평가 / 요약 (Verdict)</label>
+          <input type="text" id="add-skill-verdict" required placeholder="예: 검색엔진 최적화를 1분 만에 완성해줌" class="w-full px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-white">
+        </div>
+        <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition">
+          스킬 카탈로그에 영구 보존 등록
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Webhook Integration Guide -->
+  <div id="modal-webhook-guide" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel max-w-lg w-full p-5 rounded-2xl border border-white/20 space-y-3 text-xs">
+      <div class="flex justify-between items-center border-b border-white/10 pb-2">
+        <h3 class="font-bold text-white text-sm">🔌 스킬 자동 수집 웹훅 (Webhook API)</h3>
+        <button onclick="closeWebhookGuide()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <p class="text-slate-300">외부 크롤러, GitHub Action, 웹 자동화 봇에서 아래 엔드포인트로 POST 요청을 보내면 스킬 마켓플레이스 및 가이드라인 저장소에 실시간 축적됩니다.</p>
+      <div class="bg-black/80 p-3 rounded-xl border border-white/10 space-y-2 mono text-[11px] select-all">
+        <div class="text-emerald-400 font-bold">POST http://127.0.0.1:8765/api/skills/webhook</div>
+        <div class="text-slate-400">{<br>
+        &nbsp;&nbsp;"name": "my-crawled-skill",<br>
+        &nbsp;&nbsp;"category": "Frontend & API",<br>
+        &nbsp;&nbsp;"pros": "자동 스크래핑된 유용한 프롬프트/스킬",<br>
+        &nbsp;&nbsp;"cons": "커뮤니티 검증 대기 중",<br>
+        &nbsp;&nbsp;"verdict": "자동화로 수집된 최신 스킬"<br>
+        }</div>
+      </div>
+      <div class="text-[11px] text-slate-400">
+        💡 등록 즉시 <code class="text-indigo-300">04-skills-archive/[name]/SKILL.md</code> 파일로 자동 생성됩니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Javascript Controller -->
   <script>
     let allProjects = [];
     let currentFilter = 'active';
     let skillsList = [];
     let subagentsList = [];
+    let rawDocContent = '';
+
+    // Keyboard Shortcuts (1-6 for Tabs, Q for Quota HUD, Esc to Close)
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+      if (e.key === '1') switchTab('projects');
+      if (e.key === '2' || e.key.toLowerCase() === 'q') toggleFloatingHUD();
+      if (e.key === '3') switchTab('skills');
+      if (e.key === '4') switchTab('subagents');
+      if (e.key === '5') switchTab('github');
+      if (e.key === '6') switchTab('docs');
+      if (e.key === 'Escape') {
+        closeAddSkillModal();
+        closeWebhookGuide();
+        document.getElementById('floating-hud-popover')?.classList.add('hidden');
+      }
+    });
 
     function switchTab(id) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -404,12 +522,13 @@
       }
 
       if (id === 'projects') loadProjects();
+      if (id === 'quota') loadQuota();
       if (id === 'skills') loadSkills();
       if (id === 'subagents') loadSubagents();
       if (id === 'docs') loadDocs();
     }
 
-    // Projects
+    // Projects & Multi-repo Activity
     async function loadProjects() {
       try {
         const res = await fetch('/api/projects');
@@ -435,45 +554,69 @@
 
     function renderFilteredProjects() {
       const q = (document.getElementById('project-search-input')?.value || '').toLowerCase();
-      const active = allProjects.filter(p => !p.is_archived);
-      const arch = allProjects.filter(p => p.is_archived);
+      const famFilter = document.getElementById('family-filter-select')?.value || 'all';
 
-      document.getElementById('badge-active-count').innerText = active.length;
+      const recentActive = allProjects.filter(p => !p.is_archived && p.is_active_recently);
+      const archived = allProjects.filter(p => p.is_archived);
+
+      document.getElementById('badge-active-count').innerText = recentActive.length;
       document.getElementById('badge-all-count').innerText = allProjects.length;
-      document.getElementById('badge-archived-count').innerText = arch.length;
+      document.getElementById('badge-archived-count').innerText = archived.length;
 
       let list = allProjects;
-      if (currentFilter === 'active') list = active;
-      if (currentFilter === 'archived') list = arch;
+      if (currentFilter === 'active') list = recentActive;
+      if (currentFilter === 'archived') list = archived;
 
-      if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || p.stack.some(s => s.toLowerCase().includes(q)));
+      if (famFilter !== 'all') {
+        list = list.filter(p => p.family.toLowerCase() === famFilter.toLowerCase());
+      }
+
+      if (q) {
+        list = list.filter(p => p.name.toLowerCase().includes(q) || 
+                                p.stack.some(s => s.toLowerCase().includes(q)) || 
+                                (p.git.branch && p.git.branch.toLowerCase().includes(q)));
+      }
 
       const container = document.getElementById('projects-grid');
       container.innerHTML = list.map(p => {
         const scoreColor = p.score === 100 ? 'text-emerald-400' : (p.score >= 50 ? 'text-amber-400' : 'text-rose-400');
+        const isRecent = p.git.recent_commits_30d > 0;
         return `
-          <div class="glass-card p-3.5 rounded-2xl flex flex-col justify-between hover:border-white/20 transition">
+          <div class="glass-card p-3.5 rounded-2xl flex flex-col justify-between hover:border-white/20 transition group">
             <div>
               <div class="flex justify-between items-start mb-1.5">
                 <div>
-                  <h4 class="font-bold text-sm text-white truncate max-w-[160px]">${p.name}</h4>
+                  <div class="flex items-center gap-1.5">
+                    <h4 class="font-bold text-sm text-white truncate max-w-[150px]" title="${p.name}">${p.name}</h4>
+                    ${p.family !== 'Other' ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${p.family}</span>` : ''}
+                  </div>
                   <div class="text-[10px] text-slate-500 mono">${p.category}</div>
                 </div>
-                <span class="mono font-bold text-xs ${scoreColor}">${p.score}점</span>
+                <div class="text-right">
+                  <span class="mono font-bold text-xs ${scoreColor}">${p.score}점</span>
+                  ${isRecent ? `<div class="text-[9px] text-emerald-400 font-bold">🔥 30일 커밋 ${p.git.recent_commits_30d}개</div>` : `<div class="text-[9px] text-slate-500">${p.git.last_commit_relative}</div>`}
+                </div>
               </div>
+
               <div class="flex flex-wrap gap-1 mb-2">
                 ${p.stack.map(s => `<span class="px-1.5 py-0.2 rounded text-[9px] bg-slate-800 text-slate-300">${s}</span>`).join('')}
               </div>
+
               <div class="bg-black/40 p-2 rounded-xl text-[10px] space-y-0.5 text-slate-400">
-                <div>Git: <strong class="text-slate-200 mono">${p.git.branch || 'None'} ${p.git.dirty ? '⚠️' : '✓'}</strong></div>
-                <div>AI: <span class="text-indigo-300">${p.ai_configs.join(', ') || '설정 없음'}</span></div>
+                <div class="flex justify-between">
+                  <span>Git: <strong class="text-slate-200 mono">${p.git.branch || 'None'}</strong></span>
+                  <span class="text-slate-500">총 ${p.git.total_commits} 커밋</span>
+                </div>
+                ${p.git.origin_url ? `<div class="truncate text-[9px] text-slate-500 mono" title="${p.git.origin_url}">🔗 ${p.git.origin_url.replace('https://github.com/', '')}</div>` : ''}
+                <div>AI: <span class="text-indigo-300">${p.ai_configs.join(', ') || '미설정'}</span></div>
               </div>
             </div>
+
             <div class="mt-3 pt-2 border-t border-white/[0.06] flex justify-between items-center text-xs">
               <button onclick="toggleArchive('${p.name}', ${!p.is_archived})" class="text-[10px] text-slate-400 hover:text-white transition">
-                ${p.is_archived ? '✨ 복원' : '📦 보관'}
+                ${p.is_archived ? '✨ 보관 해제' : '📦 보관/숨김'}
               </button>
-              ${p.score < 100 ? `<button onclick="injectHarness('${p.path}', '${p.category}')" class="px-2 py-0.5 bg-indigo-600 rounded text-[10px] font-bold text-white">하네스 주입</button>` : `<span class="text-emerald-400 font-semibold text-[10px]">✓ 완비</span>`}
+              ${p.score < 100 ? `<button onclick="injectHarness('${p.path}', '${p.category}')" class="px-2 py-0.5 bg-indigo-600 rounded text-[10px] font-bold text-white shadow">하네스 주입</button>` : `<span class="text-emerald-400 font-semibold text-[10px]">✓ 완비</span>`}
             </div>
           </div>
         `;
@@ -499,7 +642,122 @@
       loadProjects();
     }
 
-    // Skills Marketplace
+    // Unified 3-Provider Quota Meters
+    async function loadQuota() {
+      try {
+        const res = await fetch('/api/tokens');
+        const data = await res.json();
+        
+        // Update header & HUD mini values
+        document.getElementById('header-claude-mini-pct').innerText = data.claude.last_5h.pct_pro + '%';
+        document.getElementById('hud-c-val').innerText = data.claude.last_5h.pct_pro + '%';
+        document.getElementById('hud-g-val').innerText = data.gemini.last_5h.pct_pro + '%';
+        document.getElementById('hud-o-val').innerText = data.gpt.last_5h.pct_pro + '%';
+
+        renderQuotaCards(data);
+        renderHudPopover(data);
+      } catch (e) { console.error(e); }
+    }
+
+    function renderQuotaCards(d) {
+      const container = document.getElementById('quota-cards-container');
+      const models = [
+        { key: 'claude', color: 'amber', border: 'border-amber-500/20', fill: 'text-amber-400', bar: 'bg-amber-400', obj: d.claude },
+        { key: 'gemini', color: 'blue', border: 'border-blue-500/20', fill: 'text-blue-400', bar: 'bg-blue-400', obj: d.gemini },
+        { key: 'gpt', color: 'emerald', border: 'border-emerald-500/20', fill: 'text-emerald-400', bar: 'bg-emerald-400', obj: d.gpt }
+      ];
+
+      container.innerHTML = models.map(m => `
+        <div class="glass-card p-4 rounded-2xl space-y-3.5 ${m.border}">
+          <div class="flex justify-between items-start">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full ${m.bar}"></span>
+              <h3 class="font-bold text-sm text-white">${m.obj.name}</h3>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10">${m.obj.tier_label}</span>
+          </div>
+
+          <!-- 5-Hour Rolling Circular Gauge -->
+          <div class="bg-black/40 p-3 rounded-xl border border-white/5 flex items-center gap-3.5">
+            <div class="relative w-16 h-16 flex-shrink-0 flex items-center justify-center">
+              <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="${m.fill} transition-all duration-1000" stroke-width="3.5" stroke-dasharray="${m.obj.last_5h.pct_pro}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <div class="absolute text-center">
+                <span class="text-xs font-black mono text-white">${m.obj.last_5h.pct_pro}%</span>
+                <span class="block text-[7px] text-slate-400">5h 소진</span>
+              </div>
+            </div>
+            <div class="flex-1 space-y-0.5 text-[11px]">
+              <div class="flex justify-between text-slate-400"><span>5시간 토큰:</span><span class="mono text-white font-semibold">${m.obj.last_5h.tokens.toLocaleString()}</span></div>
+              <div class="flex justify-between text-slate-400"><span>호출 횟수:</span><span class="mono text-slate-300">${m.obj.last_5h.calls} calls</span></div>
+              <div class="text-[10px] text-${m.color}-300 mono">⏱️ 리셋 약 ${m.obj.resets_in_minutes}분 후</div>
+            </div>
+          </div>
+
+          <!-- 7-Day Weekly Limit Bar -->
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between text-slate-400 text-[11px]">
+              <span>주간(7일) 누적 사용률:</span>
+              <span class="mono text-white font-semibold">${m.obj.last_7d.pct_pro}% (${(m.obj.last_7d.tokens/1000000).toFixed(2)}M tok)</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div class="${m.bar} h-full rounded-full transition-all duration-700" style="width: ${m.obj.last_7d.pct_pro}%"></div>
+            </div>
+            <div class="text-[10px] text-slate-500 flex justify-between pt-0.5">
+              <span>주간 플랜 캡: ${m.obj.last_7d.limit}</span>
+              <span>Team 플랜: ${m.obj.last_7d.pct_team}%</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderHudPopover(d) {
+      const pop = document.getElementById('hud-popover-content');
+      pop.innerHTML = `
+        <div class="space-y-1">
+          <div class="flex justify-between text-[11px]">
+            <span class="text-amber-400 font-bold">Claude (5h Rolling):</span>
+            <span class="mono font-bold text-white">${d.claude.last_5h.pct_pro}% (~${d.claude.resets_in_minutes}분 리셋)</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-amber-400 h-full" style="width: ${d.claude.last_5h.pct_pro}%"></div>
+          </div>
+        </div>
+        <div class="space-y-1">
+          <div class="flex justify-between text-[11px]">
+            <span class="text-blue-400 font-bold">Gemini (5h Rolling):</span>
+            <span class="mono font-bold text-white">${d.gemini.last_5h.pct_pro}%</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-blue-400 h-full" style="width: ${d.gemini.last_5h.pct_pro}%"></div>
+          </div>
+        </div>
+        <div class="space-y-1">
+          <div class="flex justify-between text-[11px]">
+            <span class="text-emerald-400 font-bold">GPT / Codex (5h):</span>
+            <span class="mono font-bold text-white">${d.gpt.last_5h.pct_pro}% (~${d.gpt.resets_in_minutes}분 리셋)</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-emerald-400 h-full" style="width: ${d.gpt.last_5h.pct_pro}%"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleFloatingHUD() {
+      const pop = document.getElementById('floating-hud-popover');
+      if (pop.classList.contains('hidden')) {
+        loadQuota();
+        pop.classList.remove('hidden');
+      } else {
+        pop.classList.add('hidden');
+      }
+    }
+
+    // Skills Catalog
     async function loadSkills() {
       try {
         const res = await fetch('/api/skills/catalog');
@@ -535,11 +793,11 @@
           </div>
 
           <div class="pt-3 border-t border-white/[0.06] flex items-center justify-between">
-            <div class="flex gap-1 text-[9px] text-slate-400">
+            <div class="flex flex-wrap gap-1 text-[9px] text-slate-400">
               ${s.compatible.map(c => `<span class="px-1.5 py-0.5 rounded bg-slate-800">${c}</span>`).join('')}
             </div>
-            <button onclick="trySkill('${s.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] shadow-sm">
-              체험/설치
+            <button onclick="trySkill('${s.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] shadow">
+              설치/체험
             </button>
           </div>
         </div>
@@ -552,62 +810,208 @@
     }
 
     function trySkill(id) {
-      alert(`스킬 '${id}'를 현재 환경에 활성화했습니다.\n터미널 실행 커맨드:\npython3 tools/harness-cli.py install-skill ${id}`);
+      alert(`스킬 '${id}'가 선택되었습니다.\n터미널 설치 명령어:\npython3 tools/harness-cli.py install-skill ${id}`);
     }
 
-    // Subagents
+    function openAddSkillModal() { document.getElementById('modal-add-skill').classList.remove('hidden'); }
+    function closeAddSkillModal() { document.getElementById('modal-add-skill').classList.add('hidden'); }
+    function showWebhookGuide() { document.getElementById('modal-webhook-guide').classList.remove('hidden'); }
+    function closeWebhookGuide() { document.getElementById('modal-webhook-guide').classList.add('hidden'); }
+
+    async function handleAddSkillSubmit(e) {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('add-skill-name').value,
+        category: document.getElementById('add-skill-category').value,
+        pros: document.getElementById('add-skill-pros').value,
+        verdict: document.getElementById('add-skill-verdict').value,
+        rating: 5.0,
+        reviews_count: 1
+      };
+      await fetch('/api/skills/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      closeAddSkillModal();
+      loadSkills();
+    }
+
+    // Visual Subagents Tree & DAG
     async function loadSubagents() {
       try {
         const res = await fetch('/api/subagents');
         const data = await res.json();
         subagentsList = data.subagents || [];
-        const el = document.getElementById('subagents-list');
-        el.innerHTML = subagentsList.map(s => `
-          <div class="p-2.5 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between text-xs">
-            <div>
-              <div class="flex items-center gap-1.5 mb-0.5">
-                <span class="mono text-slate-400 font-bold text-[10px]">${s.id}</span>
-                <strong class="text-white text-[11px]">${s.role}</strong>
-                <span class="text-[9px] px-1 py-0.2 rounded bg-indigo-500/10 text-indigo-300">@${s.project}</span>
-              </div>
-              <div class="text-slate-400 text-[10px] truncate max-w-[280px]">${s.prompt}</div>
-            </div>
-            <span class="px-2 py-0.5 rounded text-[9px] mono ${s.state === 'RUNNING' ? 'text-emerald-300 bg-emerald-500/10' : 'text-slate-300 bg-slate-800'}">${s.state}</span>
-          </div>
-        `).join('');
+        renderSubagentsTree();
       } catch (e) { console.error(e); }
     }
 
-    async function dispatchSubagent(e) {
+    function renderSubagentsTree() {
+      const container = document.getElementById('subagents-tree-view');
+      const root = subagentsList.find(s => !s.parent_id);
+      const children = subagentsList.filter(s => s.parent_id);
+
+      let html = '';
+      if (root) {
+        html += `
+          <div class="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl space-y-1">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                <span class="mono font-bold text-xs text-white">${root.id}</span>
+                <strong class="text-indigo-200 text-xs">${root.role}</strong>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300">@${root.project}</span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[9px] mono text-emerald-300 bg-emerald-500/10 font-bold">${root.state}</span>
+            </div>
+            <p class="text-[11px] text-slate-300 pl-4">${root.prompt}</p>
+          </div>
+        `;
+      }
+
+      html += `<div class="pl-5 border-l-2 border-dashed border-indigo-500/30 space-y-2.5 my-2">`;
+      children.forEach(c => {
+        const isRun = c.state === 'RUNNING';
+        html += `
+          <div class="p-2.5 bg-black/40 border border-white/5 rounded-xl space-y-1">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full ${isRun ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}"></span>
+                <span class="mono text-[10px] text-slate-400 font-semibold">${c.id}</span>
+                <strong class="text-white text-xs">${c.role}</strong>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">@${c.project}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="px-2 py-0.5 rounded text-[9px] mono ${isRun ? 'text-emerald-300 bg-emerald-500/10' : 'text-slate-400 bg-slate-800'}">${c.state}</span>
+                ${isRun ? `<button onclick="killSubagent('${c.id}')" class="px-1.5 py-0.5 text-[9px] rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500/30">Kill</button>` : ''}
+              </div>
+            </div>
+            <p class="text-[10px] text-slate-400 pl-4 truncate">${c.prompt}</p>
+          </div>
+        `;
+      });
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    async function handleDispatchSubagent(e) {
       e.preventDefault();
-      const r = document.getElementById('sub-role').value;
-      const p = document.getElementById('sub-proj').value;
-      const pr = document.getElementById('sub-prompt').value;
+      const parent_id = document.getElementById('sub-parent-sel').value;
+      const role = document.getElementById('sub-role').value;
+      const project = document.getElementById('sub-proj').value;
+      const prompt = document.getElementById('sub-prompt').value;
+
       await fetch('/api/subagents/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: r, project: p, prompt: pr })
+        body: JSON.stringify({ parent_id, role, project, prompt })
       });
       document.getElementById('sub-role').value = '';
       document.getElementById('sub-prompt').value = '';
       loadSubagents();
     }
 
-    async function handleWiz(e) {
-      e.preventDefault();
-      const n = document.getElementById('wiz-in').value;
-      const t = document.getElementById('wiz-sel').value;
-      await fetch('/api/projects/create', {
+    async function killSubagent(id) {
+      await fetch('/api/subagents/kill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: n, template: t, init_git: true })
+        body: JSON.stringify({ id })
       });
-      document.getElementById('wiz-done').classList.remove('hidden');
-      document.getElementById('wiz-cmd').innerText = `cd /Users/hhhk/dev/${n}\ngh repo create hhhkdev/${n} --private --source=. --push`;
-      loadProjects();
+      loadSubagents();
     }
 
-    // Docs
+    async function killAllSubagents() {
+      if (!confirm('모든 활성 서브에이전트를 즉시 회수하시겠습니까?')) return;
+      await fetch('/api/subagents/kill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: 'all' })
+      });
+      loadSubagents();
+    }
+
+    // GitHub Clone & Create Handlers
+    async function handleCloneSubmit(e) {
+      e.preventDefault();
+      const url = document.getElementById('clone-url').value;
+      const name = document.getElementById('clone-name').value;
+      const template = document.getElementById('clone-template').value;
+      const btn = document.getElementById('btn-clone-submit');
+      const resBox = document.getElementById('clone-result-box');
+
+      btn.disabled = true;
+      btn.innerText = '⏳ 복제 및 하네스 구축 중...';
+      resBox.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/projects/clone', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, name, template })
+        });
+        const d = await res.json();
+        resBox.classList.remove('hidden');
+        if (d.success) {
+          resBox.innerHTML = `<div class="text-emerald-400 font-bold">✓ ${d.message}</div><div class="mono text-slate-400 mt-1">경로: ${d.path}</div>`;
+          document.getElementById('clone-url').value = '';
+          document.getElementById('clone-name').value = '';
+          loadProjects();
+        } else {
+          resBox.innerHTML = `<div class="text-rose-400 font-bold">❌ 실패: ${d.error}</div>`;
+        }
+      } catch (err) {
+        resBox.classList.remove('hidden');
+        resBox.innerHTML = `<div class="text-rose-400 font-bold">❌ 통신 오류: ${err}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '📥 1-Click 안전 Clone 및 하네스 주입';
+      }
+    }
+
+    async function handleCreateWithGit(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-proj-name').value;
+      const template = document.getElementById('new-proj-tpl').value;
+      const github_remote = document.getElementById('new-proj-remote').value;
+      const btn = document.getElementById('btn-create-submit');
+      const resBox = document.getElementById('create-result-box');
+
+      btn.disabled = true;
+      btn.innerText = '⏳ 프로젝트 생성 중...';
+      resBox.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/projects/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, template, init_git: true, github_remote })
+        });
+        const d = await res.json();
+        resBox.classList.remove('hidden');
+        if (d.success) {
+          resBox.innerHTML = `
+            <div class="text-emerald-400 font-bold">✓ ${d.message}</div>
+            <div class="mono text-slate-300 mt-1 select-all bg-black/50 p-2 rounded">
+              cd ${d.path}<br>
+              ${github_remote ? `git push -u origin main` : `git remote add origin &lt;URL&gt;<br>git push -u origin main`}
+            </div>
+          `;
+          document.getElementById('new-proj-name').value = '';
+          loadProjects();
+        } else {
+          resBox.innerHTML = `<div class="text-rose-400 font-bold">❌ 실패: ${d.error}</div>`;
+        }
+      } catch (err) {
+        resBox.classList.remove('hidden');
+        resBox.innerHTML = `<div class="text-rose-400 font-bold">❌ 통신 오류: ${err}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '🚀 프로젝트 생성 및 Git 초기화';
+      }
+    }
+
+    // Markdown Docs Viewer
     async function loadDocs() {
       const res = await fetch('/api/docs');
       const data = await res.json();
@@ -622,7 +1026,7 @@
         <div>
           <div class="text-[10px] uppercase font-bold text-slate-500 mb-1">${folder}</div>
           <div class="space-y-1 pl-2 border-l border-white/10">
-            ${groups[folder].map(d => `<button onclick="viewDoc('${d.path}')" class="w-full text-left p-1 rounded hover:bg-slate-800 text-slate-300 truncate block">📄 ${d.title}</button>`).join('')}
+            ${groups[folder].map(d => `<button onclick="viewDoc('${d.path}')" class="w-full text-left p-1 rounded hover:bg-slate-800 text-slate-300 truncate block text-[11px]">📄 ${d.title}</button>`).join('')}
           </div>
         </div>
       `).join('');
@@ -633,16 +1037,25 @@
       document.getElementById('doc-active-title').innerText = p;
       const res = await fetch(`/api/docs/content?path=${encodeURIComponent(p)}`);
       const data = await res.json();
-      document.getElementById('doc-content-body').innerText = data.content || data.error;
+      rawDocContent = data.content || data.error || '';
+      
+      // Render markdown using marked.js
+      if (window.marked) {
+        document.getElementById('doc-content-body').innerHTML = marked.parse(rawDocContent);
+      } else {
+        document.getElementById('doc-content-body').innerText = rawDocContent;
+      }
     }
 
     function copyDocContent() {
-      navigator.clipboard.writeText(document.getElementById('doc-content-body').innerText);
-      alert('복사되었습니다.');
+      navigator.clipboard.writeText(rawDocContent);
+      alert('마크다운 원본이 클립보드에 복사되었습니다.');
     }
 
-    // Boot
+    // Boot & Periodic Live Quota Refresh
     loadProjects();
+    loadQuota();
+    setInterval(loadQuota, 30000); // 30s live poll
   </script>
 </body>
 </html>

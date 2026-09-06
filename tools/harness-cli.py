@@ -287,6 +287,33 @@ def serve_dashboard(port=8765):
         print("\nAgent Hub stopped.")
 
 
+
+def clone_project(url, custom_name=None, template="auto"):
+    import sys
+    sys.path.insert(0, os.path.join(REPO_ROOT, "tools", "agent-hub"))
+    import server
+    req = {"url": url, "name": custom_name or "", "template": template}
+    # Call internal clone handler logic
+    inferred = custom_name or url.rstrip("/").split("/")[-1].replace(".git", "")
+    target_path = os.path.join(server.ALLOWED_DEV_ROOT, inferred)
+    try:
+        safe_target = server.validate_safe_path(target_path, server.ALLOWED_DEV_ROOT)
+        if os.path.exists(safe_target):
+            print(f"❌ Error: Target directory '{inferred}' already exists.")
+            return
+        print(f"📥 Cloning '{url}' into '{safe_target}'...")
+        import subprocess
+        subprocess.run(["git", "clone", url, safe_target], check=True)
+        init_harness(safe_target, template if template != "auto" else None)
+        print(f"🎉 Successfully cloned and initialized harness at: {safe_target}")
+    except Exception as e:
+        print(f"❌ Clone Error: {e}")
+
+def launch_desktop():
+    script_path = os.path.join(REPO_ROOT, "tools", "launch-desktop.sh")
+    import subprocess
+    subprocess.run(["bash", script_path])
+
 def main():
     parser = argparse.ArgumentParser(description="Agent Harness Management CLI")
     subparsers = parser.add_subparsers(dest="command")
@@ -301,7 +328,7 @@ def main():
 
     subparsers.add_parser("list-skills", help="List archived skills")
     subparsers.add_parser("tokens", help="Show token metrics across Claude, Gemini, GPT")
-    subparsers.add_parser("quota", help="Show 5-hour rolling and 7-day plan quota utilization %")
+    subparsers.add_parser("quota", help="Show 5-hour rolling and 7-day plan quota utilization percentage")
 
     arch_p = subparsers.add_parser("archive", help="Archive a project to hide from active list")
     arch_p.add_argument("name", help="Project name")
@@ -322,6 +349,13 @@ def main():
     create_p = subparsers.add_parser("create-project", help="Create a new sandboxed project")
     create_p.add_argument("name", help="Project name (under /Users/hhhk/dev)")
     create_p.add_argument("--template", help="Harness template (nextjs-fullstack, react-native-expo, flutter-riverpod, spring-boot-jvm, design-system, universal)", default="universal")
+
+    clone_p = subparsers.add_parser("clone", help="Clone GitHub repo and auto-inject harness")
+    clone_p.add_argument("url", help="GitHub repo URL")
+    clone_p.add_argument("--name", help="Custom folder name", default=None)
+    clone_p.add_argument("--template", help="Harness template", default="auto")
+
+    desktop_p = subparsers.add_parser("desktop", help="Launch Agent Hub as standalone macOS desktop app")
 
     serve_p = subparsers.add_parser("serve", help="Launch the Agent Hub Web Control Center")
     serve_p.add_argument("--port", type=int, default=8765, help="Port to listen on")
@@ -353,6 +387,10 @@ def main():
             sub_p.print_help()
     elif args.command == "create-project":
         create_project(args.name, args.template)
+    elif args.command == "clone":
+        clone_project(args.url, args.name, args.template)
+    elif args.command == "desktop":
+        launch_desktop()
     elif args.command == "serve":
         serve_dashboard(args.port)
     else:

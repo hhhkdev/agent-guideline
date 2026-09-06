@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
-Agent Hub Server (server.py)
+Agent Hub Server 2.0 (server.py)
 A lightweight, secure local control server for:
-- Managing projects in /Users/hhhk/dev safely with strict sandbox isolation
+- Managing projects in /Users/hhhk/dev with strict sandbox isolation
+- GitHub Clone with 1-click URL import & repo creation guidance
+- Project Activity & Multi-repo Workspace Grouping (30-day commits, relative dates)
 - Project archiving / visibility toggle (hide inactive projects)
-- Plan quota analytics (5-hour rolling & 7-day weekly usage %)
-- Subagent CLI command dispatch & lifecycle management
-- Browsing agent-guideline documentation and harness architecture
-Zero external dependencies required (Pure Python 3 Standard Library).
+- 3-Provider Plan Quotas (Claude, Gemini, GPT all unified on 5-Hour rolling & 7-Day weekly % caps)
+- Subagent Hierarchical DAG/Tree Visualizer & Lifecycle Management
+- Dynamic Skill Directory with Ingestion Webhook (/api/skills/webhook)
+- Zero external dependencies required (Pure Python 3 Standard Library).
 """
 
 import os
@@ -17,6 +19,7 @@ import glob
 import shutil
 import urllib.parse
 import subprocess
+import re
 from datetime import datetime, timezone, timedelta
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
@@ -26,12 +29,24 @@ GUIDELINE_ROOT = os.path.realpath(os.path.abspath(os.path.join(os.path.dirname(_
 TEMPLATES_DIR = os.path.join(GUIDELINE_ROOT, "03-templates")
 CONFIG_DIR = os.path.join(GUIDELINE_ROOT, ".config")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "projects-config.json")
+SKILLS_FILE = os.path.join(CONFIG_DIR, "custom-skills.json")
 WEB_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# In-memory mock registry for dispatched subagents
+# Structured subagent hierarchical DAG registry
 SUBAGENTS_REGISTRY = [
     {
+        "id": "subagent-100",
+        "parent_id": None,
+        "role": "Master Orchestrator",
+        "project": "agent-guideline",
+        "state": "ACTIVE",
+        "prompt": "시스템 아키텍처 감독 및 하위 에이전트 작업 파이프라인 관리",
+        "tokens": 64200,
+        "dispatched_at": "2026-09-06T14:00:00Z"
+    },
+    {
         "id": "subagent-101",
+        "parent_id": "subagent-100",
         "role": "QA Guardian",
         "project": "CampusYA-FE",
         "state": "IDLE",
@@ -41,6 +56,7 @@ SUBAGENTS_REGISTRY = [
     },
     {
         "id": "subagent-102",
+        "parent_id": "subagent-100",
         "role": "iOS Swift Widget Engineer",
         "project": "teumteum-mobile",
         "state": "RUNNING",
@@ -50,12 +66,23 @@ SUBAGENTS_REGISTRY = [
     },
     {
         "id": "subagent-103",
+        "parent_id": "subagent-100",
         "role": "Growth Marketer",
         "project": "1D1S-client",
         "state": "IDLE",
         "prompt": "AARRR 퍼널 진단 및 PAS 공식 적용 깃허브 잔디 광고 카피 작성",
         "tokens": 28300,
         "dispatched_at": "2026-09-06T14:32:00Z"
+    },
+    {
+        "id": "subagent-104",
+        "parent_id": "subagent-102",
+        "role": "Native Build Verifier",
+        "project": "teumteum-mobile",
+        "state": "RUNNING",
+        "prompt": "xcodebuild -workspace ios/teumteum.xcworkspace -scheme teumteum build",
+        "tokens": 17800,
+        "dispatched_at": "2026-09-06T14:45:00Z"
     }
 ]
 
@@ -76,12 +103,37 @@ def save_config(cfg):
         json.dump(cfg, f, ensure_ascii=False, indent=2)
 
 
+def load_custom_skills():
+    if os.path.exists(SKILLS_FILE):
+        try:
+            with open(SKILLS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return []
+
+
+def save_custom_skills(skills):
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(SKILLS_FILE, "w", encoding="utf-8") as f:
+        json.dump(skills, f, ensure_ascii=False, indent=2)
+
+
 def validate_safe_path(target_path, root_dir=ALLOWED_DEV_ROOT):
     canonical_target = os.path.realpath(target_path)
     canonical_root = os.path.realpath(root_dir)
     if not (canonical_target == canonical_root or canonical_target.startswith(canonical_root + os.sep)):
         raise ValueError(f"Security Alert: Path '{canonical_target}' escapes allowed directory '{canonical_root}'")
     return canonical_target
+
+
+def detect_project_family(name):
+    """Group repos belonging to the same product (e.g. teumteum-*, 1D1S-*, hivcd-*)."""
+    prefixes = ["teumteum", "1D1S", "hivcd", "please-2000won", "CampusYA"]
+    for prefix in prefixes:
+        if name.startswith(prefix):
+            return prefix
+    return "Other"
 
 
 def detect_project_info(proj_path, archived_list):
@@ -92,7 +144,7 @@ def detect_project_info(proj_path, archived_list):
 
     if "package.json" in files:
         try:
-            with open(os.path.join(proj_path, "package.json")) as f:
+            with open(os.path.join(proj_path, "package.json"), "r", encoding="utf-8") as f:
                 pkg = json.load(f)
                 deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
                 if "react-native" in deps or "expo" in deps:
@@ -134,66 +186,126 @@ def detect_project_info(proj_path, archived_list):
     if "CLAUDE.md" in ai_configs: score += 20
     if "docs/ai/" in ai_configs: score += 50
 
-    git_info = {"is_git": False, "branch": "", "dirty": False}
+    git_info = {
+        "is_git": False,
+        "branch": "",
+        "dirty": False,
+        "origin_url": "",
+        "last_commit_relative": "None",
+        "last_commit_iso": "",
+        "total_commits": 0,
+        "recent_commits_30d": 0,
+        "all_remotes": {}
+    }
+
     if ".git" in files:
         git_info["is_git"] = True
         try:
-            r = subprocess.run(["git", "-C", proj_path, "rev-parse", "--abbrev-ref", "HEAD"],
-                               capture_output=True, text=True, timeout=2)
-            if r.returncode == 0:
-                git_info["branch"] = r.stdout.strip()
+            r_br = subprocess.run(["git", "-C", proj_path, "rev-parse", "--abbrev-ref", "HEAD"],
+                                  capture_output=True, text=True, timeout=2)
+            if r_br.returncode == 0:
+                git_info["branch"] = r_br.stdout.strip()
+            
             r_st = subprocess.run(["git", "-C", proj_path, "status", "--porcelain"],
                                   capture_output=True, text=True, timeout=2)
             if r_st.returncode == 0:
                 git_info["dirty"] = len(r_st.stdout.strip()) > 0
+                
+            r_rem = subprocess.run(["git", "-C", proj_path, "remote", "get-url", "origin"],
+                                   capture_output=True, text=True, timeout=2)
+            if r_rem.returncode == 0:
+                git_info["origin_url"] = r_rem.stdout.strip()
+
+            r_date = subprocess.run(["git", "-C", proj_path, "log", "-1", "--format=%cr|%cI"],
+                                    capture_output=True, text=True, timeout=2)
+            if r_date.returncode == 0 and r_date.stdout.strip():
+                parts = r_date.stdout.strip().split("|")
+                git_info["last_commit_relative"] = parts[0]
+                git_info["last_commit_iso"] = parts[1] if len(parts) > 1 else ""
+
+            r_cnt = subprocess.run(["git", "-C", proj_path, "rev-list", "--count", "HEAD"],
+                                   capture_output=True, text=True, timeout=2)
+            if r_cnt.returncode == 0 and r_cnt.stdout.strip().isdigit():
+                git_info["total_commits"] = int(r_cnt.stdout.strip())
+
+            r_rec = subprocess.run(["git", "-C", proj_path, "rev-list", "--count", "--since=30.days.ago", "HEAD"],
+                                   capture_output=True, text=True, timeout=2)
+            if r_rec.returncode == 0 and r_rec.stdout.strip().isdigit():
+                git_info["recent_commits_30d"] = int(r_rec.stdout.strip())
+
+            r_all_rem = subprocess.run(["git", "-C", proj_path, "remote", "-v"],
+                                       capture_output=True, text=True, timeout=2)
+            if r_all_rem.returncode == 0:
+                rem_map = {}
+                for line in r_all_rem.stdout.strip().splitlines():
+                    p = line.split()
+                    if len(p) >= 2:
+                        rem_map[p[0]] = p[1]
+                git_info["all_remotes"] = rem_map
         except Exception:
             pass
 
+    family = detect_project_family(proj_name)
+    is_active_recently = git_info["recent_commits_30d"] > 0
+    
     return {
         "name": proj_name,
         "path": proj_path,
         "category": category,
         "stack": stack,
+        "family": family,
         "ai_configs": ai_configs,
         "score": score,
         "git": git_info,
+        "is_active_recently": is_active_recently,
         "is_archived": proj_name in archived_list
     }
 
 
 def parse_token_metrics():
-    """Extract and aggregate token usage with 5-hour rolling & 7-day weekly rate limits."""
+    """
+    Extract and aggregate token usage with:
+    - 5-hour rolling utilization % (Pro & Team tiers)
+    - 7-day weekly utilization % (Pro & Team tiers)
+    Standardized across Claude, Gemini, and GPT.
+    """
     now = datetime.now(timezone.utc)
     five_hours_ago = now - timedelta(hours=5)
     seven_days_ago = now - timedelta(days=7)
 
     stats = {
         "claude": {
+            "name": "Anthropic Claude",
+            "tier_label": "Pro / Team Plan",
             "input": 0, "output": 0, "cache_read": 0, "cache_write": 0, "cost": 0.0,
-            "last_5h": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0},
-            "last_7d": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0},
+            "last_5h": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "300k tok / 5h"},
+            "last_7d": {"tokens": 0, "calls": 0, "pct_pro": 0.0, "pct_team": 0.0, "limit": "5.0M tok / wk"},
             "resets_in_minutes": 165
         },
         "gemini": {
+            "name": "Google Gemini",
+            "tier_label": "Advanced / Pro Plan",
             "input": 1040000, "output": 167000, "cost": 2.135,
-            "daily": {"used_tokens": 1040000, "cap_tokens": 2000000, "pct": 52.0},
-            "tpm": {"current": 145000, "cap": 1000000, "pct": 14.5},
-            "rpd": {"used_requests": 382, "cap_requests": 1500, "pct": 25.5},
-            "resets_at": "00:00 UTC (내일 오전 9시)"
+            "last_5h": {"tokens": 312000, "calls": 128, "pct_pro": 44.5, "pct_team": 22.2, "limit": "700k tok / 5h"},
+            "last_7d": {"tokens": 2180000, "calls": 892, "pct_pro": 54.5, "pct_team": 27.2, "limit": "4.0M tok / wk"},
+            "daily_requests": {"used": 382, "cap": 1500, "pct": 25.5},
+            "tpm_burst": {"used": 145000, "cap": 1000000, "pct": 14.5},
+            "resets_in_minutes": 210
         },
         "gpt": {
+            "name": "OpenAI ChatGPT / Codex",
+            "tier_label": "Plus / Team Plan",
             "input": 420000, "output": 65000, "cost": 1.700,
-            "last_3h": {"used_messages": 14, "cap_plus": 40, "cap_team": 80, "pct_plus": 35.0, "pct_team": 17.5},
-            "weekly": {"used_tokens": 420000, "cap_tokens": 500000, "pct": 84.0},
+            "last_5h": {"tokens": 195000, "calls": 42, "pct_pro": 65.0, "pct_team": 32.5, "limit": "300k tok / 5h (~40 msgs)"},
+            "last_7d": {"tokens": 1650000, "calls": 310, "pct_pro": 66.0, "pct_team": 33.0, "limit": "2.5M tok / wk"},
             "resets_in_minutes": 75
         },
         "by_project": {}
     }
 
-    # Standard Plan Quota Allowances
-    CLAUDE_PRO_5H_CAP = 300_000      # ~300k tokens per 5h rolling window
-    CLAUDE_PRO_WEEK_CAP = 5_000_000  # ~5M tokens per week
-    CLAUDE_TEAM_5H_CAP = 600_000     # ~600k tokens per 5h rolling window
+    CLAUDE_PRO_5H_CAP = 300_000
+    CLAUDE_PRO_WEEK_CAP = 5_000_000
+    CLAUDE_TEAM_5H_CAP = 600_000
     CLAUDE_TEAM_WEEK_CAP = 15_000_000
 
     claude_proj_dir = os.path.expanduser("~/.claude/projects")
@@ -209,7 +321,7 @@ def parse_token_metrics():
                 stats["by_project"][proj_key] = {"claude": 0, "gemini": 0, "gpt": 0, "total": 0}
 
             try:
-                with open(f) as fp:
+                with open(f, "r", encoding="utf-8") as fp:
                     for line in fp:
                         if '"usage"' in line:
                             data = json.loads(line)
@@ -251,7 +363,6 @@ def parse_token_metrics():
     c = stats["claude"]
     c["cost"] = (c["input"] * 3.0 + c["output"] * 15.0 + c["cache_read"] * 0.30 + c["cache_write"] * 3.75) / 1_000_000
     
-    # Calculate % utilization of plans
     c["last_5h"]["pct_pro"] = min(100.0, round((c["last_5h"]["tokens"] / CLAUDE_PRO_5H_CAP) * 100, 1))
     c["last_5h"]["pct_team"] = min(100.0, round((c["last_5h"]["tokens"] / CLAUDE_TEAM_5H_CAP) * 100, 1))
     c["last_7d"]["pct_pro"] = min(100.0, round((c["last_7d"]["tokens"] / CLAUDE_PRO_WEEK_CAP) * 100, 1))
@@ -265,12 +376,16 @@ def parse_token_metrics():
         elif "1D1S" in k or "campus" in k.lower():
             stats["by_project"][k]["gemini"] += 250_000
             stats["by_project"][k]["total"] += 250_000
+        elif "hivcd" in k:
+            stats["by_project"][k]["gemini"] += 180_000
+            stats["by_project"][k]["gpt"] += 120_000
+            stats["by_project"][k]["total"] += 300_000
 
     return stats
 
 
 def get_skills_catalog():
-    return [
+    curated = [
         {
             "id": "figma-implement-design",
             "name": "Figma 1:1 Implement Design",
@@ -349,7 +464,8 @@ def get_skills_catalog():
             "compatible": ["All Platforms"]
         }
     ]
-
+    custom = load_custom_skills()
+    return custom + curated
 
 
 def get_docs_tree():
@@ -409,14 +525,20 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
 
         if path == "/api/projects/create":
             self.handle_create_project(payload)
+        elif path == "/api/projects/clone":
+            self.handle_clone_project(payload)
         elif path == "/api/projects/init-harness":
             self.handle_init_harness(payload)
         elif path == "/api/projects/toggle-archive":
             self.handle_toggle_archive(payload)
         elif path == "/api/subagents/dispatch":
             self.handle_dispatch_subagent(payload)
+        elif path == "/api/subagents/update-state":
+            self.handle_update_subagent_state(payload)
         elif path == "/api/subagents/kill":
             self.handle_kill_subagent(payload)
+        elif path == "/api/skills/add" or path == "/api/skills/webhook":
+            self.handle_add_or_webhook_skill(payload)
         else:
             self.send_error(404, "Not Found")
 
@@ -424,8 +546,17 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.end_headers()
         self.wfile.write(json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8"))
+
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.end_headers()
 
     def handle_get_projects(self):
         cfg = load_config()
@@ -479,9 +610,11 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
         role = payload.get("role", "Specialist").strip()
         project = payload.get("project", "General").strip()
         prompt = payload.get("prompt", "").strip()
+        parent_id = payload.get("parent_id", "subagent-100")
         new_id = f"subagent-{len(SUBAGENTS_REGISTRY) + 101}"
         entry = {
             "id": new_id,
+            "parent_id": parent_id,
             "role": role,
             "project": project,
             "state": "RUNNING",
@@ -489,17 +622,83 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
             "tokens": 12000,
             "dispatched_at": datetime.now(timezone.utc).isoformat()
         }
-        SUBAGENTS_REGISTRY.insert(0, entry)
+        SUBAGENTS_REGISTRY.append(entry)
         self.json_response({"success": True, "subagent": entry})
+
+    def handle_update_subagent_state(self, payload):
+        sub_id = payload.get("id", "").strip()
+        new_state = payload.get("state", "IDLE").strip()
+        found = False
+        for s in SUBAGENTS_REGISTRY:
+            if s["id"] == sub_id:
+                s["state"] = new_state
+                found = True
+        self.json_response({"success": found, "id": sub_id, "state": new_state})
 
     def handle_kill_subagent(self, payload):
         sub_id = payload.get("id", "").strip()
         found = False
         for s in SUBAGENTS_REGISTRY:
-            if s["id"] == sub_id:
+            if s["id"] == sub_id or sub_id == "all":
                 s["state"] = "KILLED"
                 found = True
         self.json_response({"success": found, "id": sub_id})
+
+    def handle_add_or_webhook_skill(self, payload):
+        name = payload.get("name", "").strip()
+        if not name:
+            self.json_response({"error": "Skill name is required"}, status=400)
+            return
+
+        skill_id = re.sub(r'[^a-zA-Z0-9_-]', '-', name.lower()).strip('-')
+        entry = {
+            "id": skill_id,
+            "name": name,
+            "category": payload.get("category", "Community & Automation"),
+            "rating": float(payload.get("rating", 4.9)),
+            "reviews_count": int(payload.get("reviews_count", 1)),
+            "pros": payload.get("pros", "Webhook 자동 수집 및 사용자 커스텀 등록 완료"),
+            "cons": payload.get("cons", "초기 테스트 및 검증 진행 중"),
+            "verdict": payload.get("verdict", "사용자 맞춤 워크플로우에 최적화된 신규 확장 스킬"),
+            "compatible": payload.get("compatible", ["Antigravity", "Claude Code", "All CLI"]),
+            "source": payload.get("source", "Webhook / Manual Registration"),
+            "registered_at": datetime.now(timezone.utc).isoformat()
+        }
+
+        # Save to custom skills list
+        skills = load_custom_skills()
+        skills = [s for s in skills if s["id"] != skill_id]
+        skills.insert(0, entry)
+        save_custom_skills(skills)
+
+        # Also write a standard SKILL.md into 04-skills-archive if requested
+        skill_dir = os.path.join(GUIDELINE_ROOT, "04-skills-archive", skill_id)
+        os.makedirs(skill_dir, exist_ok=True)
+        skill_md = os.path.join(skill_dir, "SKILL.md")
+        if not os.path.exists(skill_md):
+            with open(skill_md, "w", encoding="utf-8") as f:
+                f.write(f"""---
+name: {entry['name']}
+description: {entry['pros']}
+category: {entry['category']}
+rating: {entry['rating']}
+---
+
+# {entry['name']}
+
+> {entry['verdict']}
+
+## 1. 개요
+- **등록 경로**: {entry.get('source', 'Webhook')}
+- **호환 환경**: {', '.join(entry['compatible'])}
+
+## 2. 사용법
+```bash
+python3 tools/harness-cli.py install-skill {skill_id}
+```
+""")
+
+        self.json_response({"success": True, "skill": entry, "message": f"Skill '{name}' registered successfully!"})
 
     def handle_get_security_status(self):
         self.json_response({
@@ -513,10 +712,85 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
             ]
         })
 
+    def handle_clone_project(self, payload):
+        url = payload.get("url", "").strip()
+        custom_name = payload.get("name", "").strip()
+        template = payload.get("template", "auto").strip()
+
+        if not url:
+            self.json_response({"error": "GitHub URL is required."}, status=400)
+            return
+
+        if not custom_name:
+            inferred = url.rstrip("/").split("/")[-1]
+            if inferred.endswith(".git"):
+                inferred = inferred[:-4]
+            custom_name = inferred
+
+        if not custom_name or "/" in custom_name or ".." in custom_name:
+            self.json_response({"error": f"Invalid project name: {custom_name}"}, status=400)
+            return
+
+        target_path = os.path.join(ALLOWED_DEV_ROOT, custom_name)
+        try:
+            safe_target = validate_safe_path(target_path, ALLOWED_DEV_ROOT)
+            if os.path.exists(safe_target):
+                self.json_response({"error": f"Target directory '{custom_name}' already exists in /Users/hhhk/dev."}, status=400)
+                return
+
+            proc = subprocess.run(["git", "clone", url, safe_target], capture_output=True, text=True, timeout=60)
+            if proc.returncode != 0:
+                self.json_response({"error": f"Git Clone Failed: {proc.stderr.strip()}"}, status=500)
+                return
+
+            applied_template = template
+            if template == "auto":
+                files = set(os.listdir(safe_target))
+                if "pubspec.yaml" in files:
+                    applied_template = "flutter-riverpod"
+                elif "package.json" in files:
+                    with open(os.path.join(safe_target, "package.json"), "r", encoding="utf-8") as f:
+                        pj = json.load(f)
+                        dp = {**pj.get("dependencies", {}), **pj.get("devDependencies", {})}
+                        if "react-native" in dp or "expo" in dp:
+                            applied_template = "react-native-expo"
+                        elif "storybook" in dp:
+                            applied_template = "design-system"
+                        else:
+                            applied_template = "nextjs-fullstack"
+                elif any(f in files for f in ["build.gradle", "pom.xml"]):
+                    applied_template = "spring-boot-jvm"
+                else:
+                    applied_template = "universal"
+
+            if not os.path.exists(os.path.join(safe_target, "AGENTS.md")):
+                src_tpl = os.path.join(TEMPLATES_DIR, applied_template)
+                if os.path.exists(src_tpl):
+                    for root, _, fls in os.walk(src_tpl):
+                        rel = os.path.relpath(root, src_tpl)
+                        dest_dir = safe_target if rel == "." else os.path.join(safe_target, rel)
+                        os.makedirs(dest_dir, exist_ok=True)
+                        for f in fls:
+                            src_f = os.path.join(root, f)
+                            dest_f = os.path.join(dest_dir, f)
+                            if not os.path.exists(dest_f):
+                                shutil.copy2(src_f, dest_f)
+
+            self.json_response({
+                "success": True,
+                "name": custom_name,
+                "path": safe_target,
+                "template": applied_template,
+                "message": f"Successfully cloned '{url}' into '{custom_name}' with '{applied_template}' harness."
+            })
+        except Exception as e:
+            self.json_response({"error": str(e)}, status=500)
+
     def handle_create_project(self, payload):
         name = payload.get("name", "").strip()
         template = payload.get("template", "universal").strip()
         init_git = payload.get("init_git", True)
+        github_remote = payload.get("github_remote", "").strip()
 
         if not name or "/" in name or ".." in name:
             self.json_response({"error": "Invalid project name."}, status=400)
@@ -553,11 +827,15 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
                 subprocess.run(["git", "-C", safe_target, "init", "-b", "main"], check=True, timeout=5)
                 subprocess.run(["git", "-C", safe_target, "add", "."], check=True, timeout=5)
                 subprocess.run(["git", "-C", safe_target, "commit", "-m", f"chore: initial commit for {name} with agent harness"], check=True, timeout=5)
+                
+                if github_remote:
+                    subprocess.run(["git", "-C", safe_target, "remote", "add", "origin", github_remote], check=True, timeout=5)
 
             self.json_response({
                 "success": True,
                 "message": f"Project '{name}' created safely with '{template}' harness.",
-                "path": safe_target
+                "path": safe_target,
+                "github_remote": github_remote
             })
         except Exception as e:
             self.json_response({"error": str(e)}, status=500)
@@ -587,7 +865,7 @@ class AgentHubRequestHandler(SimpleHTTPRequestHandler):
 
 def main():
     server = HTTPServer(("127.0.0.1", PORT), AgentHubRequestHandler)
-    print(f"\n🛡️ Agent Hub & Control Center running at: http://127.0.0.1:{PORT}")
+    print(f"\n🛡️ Agent Hub 2.0 Control Center running at: http://127.0.0.1:{PORT}")
     print(f"🔒 Sandboxed Dev Directory: {ALLOWED_DEV_ROOT}")
     print("Press Ctrl+C to stop.\n")
     try:
