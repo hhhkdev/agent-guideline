@@ -395,22 +395,35 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- TAB 6: MARKDOWN DOCUMENT VIEWER                          -->
+    <!-- TAB 6: MARKDOWN DOCUMENT VIEWER (Collapsible Responsive) -->
     <!-- ======================================================== -->
-    <section id="tab-docs" class="tab-content hidden grid grid-cols-12 gap-4 h-[calc(100vh-120px)]">
-      <div class="col-span-12 lg:col-span-4 glass-panel p-3.5 rounded-2xl flex flex-col h-full text-xs">
-        <h3 class="font-bold text-slate-200 border-b border-white/10 pb-2 mb-2 flex items-center justify-between">
-          <span>agent-guideline 문서 목록</span>
-          <span class="text-[10px] text-indigo-400 mono">Markdown v2</span>
-        </h3>
+    <section id="tab-docs" class="tab-content hidden flex flex-col md:flex-row gap-3.5 h-[calc(100vh-105px)]">
+      
+      <!-- Collapsible Sidebar (Toggleable on Mobile & Tablet) -->
+      <div id="docs-sidebar" class="w-full md:w-80 lg:w-96 glass-panel p-3.5 rounded-2xl flex flex-col text-xs flex-shrink-0 transition-all duration-300">
+        <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
+          <div class="flex items-center gap-1.5 font-bold text-slate-200">
+            <span>📚 문서 라이브러리</span>
+          </div>
+          <button onclick="toggleDocsSidebar()" class="md:hidden px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">
+            닫기 ✕
+          </button>
+        </div>
         <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="docs-tree-container"></div>
       </div>
-      <div class="col-span-12 lg:col-span-8 glass-panel p-4 rounded-2xl flex flex-col h-full text-xs">
-        <div class="flex justify-between items-center border-b border-white/10 pb-2 mb-2">
-          <span id="doc-active-title" class="mono font-bold text-indigo-400 truncate max-w-md">문서를 선택하세요</span>
-          <button onclick="copyDocContent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 mono text-[10px] transition">📋 원본 복사</button>
+
+      <!-- Main Document Viewer Container (Expands to 100% when sidebar collapsed) -->
+      <div class="flex-1 glass-panel p-4 rounded-2xl flex flex-col h-full text-xs min-w-0">
+        <div class="flex justify-between items-center border-b border-white/10 pb-2 mb-2 gap-2">
+          <div class="flex items-center gap-2 truncate">
+            <button onclick="toggleDocsSidebar()" id="btn-docs-sidebar-toggle" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1 flex-shrink-0">
+              <span>📑 목차 <span id="docs-sidebar-state-txt">접기</span></span>
+            </button>
+            <span id="doc-active-title" class="mono font-bold text-indigo-400 truncate text-xs">문서를 선택하세요</span>
+          </div>
+          <button onclick="copyDocContent()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 mono text-[10px] transition flex-shrink-0">📋 원본 복사</button>
         </div>
-        <div id="doc-content-body" class="flex-1 bg-slate-950/90 p-4 rounded-xl border border-white/5 overflow-y-auto markdown-body select-text"></div>
+        <div id="doc-content-body" class="flex-1 bg-slate-950/90 p-5 rounded-xl border border-white/5 overflow-y-auto markdown-body select-text leading-relaxed"></div>
       </div>
     </section>
 
@@ -697,46 +710,78 @@
       ];
 
       container.innerHTML = models.map(m => `
-        <div class="glass-card p-4 rounded-2xl space-y-3.5 ${m.border}">
-          <div class="flex justify-between items-start">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full ${m.bar}"></span>
-              <h3 class="font-bold text-sm text-white">${m.obj.name}</h3>
+        <div class="glass-card p-5 rounded-2xl space-y-4 ${m.border} flex flex-col justify-between hover:border-white/20 transition">
+          <div>
+            <!-- Header with Badge -->
+            <div class="flex justify-between items-start mb-3">
+              <div class="flex items-center gap-2.5">
+                <span class="w-3 h-3 rounded-full ${m.bar} shadow-sm shadow-${m.color}-500/50"></span>
+                <div>
+                  <h3 class="font-bold text-base text-white">${m.obj.name}</h3>
+                  <div class="text-[11px] text-slate-400">${m.obj.tier_label}</div>
+                </div>
+              </div>
+              <span class="text-[10px] px-2.5 py-1 rounded-full bg-white/5 text-slate-300 border border-white/10 font-mono">Rate Limits</span>
             </div>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10">${m.obj.tier_label}</span>
-          </div>
 
-          <!-- 5-Hour Rolling Circular Gauge -->
-          <div class="bg-black/40 p-3 rounded-xl border border-white/5 flex items-center gap-3.5">
-            <div class="relative w-16 h-16 flex-shrink-0 flex items-center justify-center">
-              <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path class="${m.fill} transition-all duration-1000" stroke-width="3.5" stroke-dasharray="${m.obj.last_5h.pct_pro}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-              </svg>
-              <div class="absolute text-center">
-                <span class="text-xs font-black mono text-white">${m.obj.last_5h.pct_pro}%</span>
-                <span class="block text-[7px] text-slate-400">5h 소진</span>
+            <!-- 5-Hour Circular Gauge Hero Block -->
+            <div class="bg-black/50 p-4 rounded-2xl border border-white/5 flex items-center gap-5">
+              <div class="relative w-24 h-24 flex-shrink-0 flex items-center justify-center">
+                <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                  <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="${m.fill} transition-all duration-1000" stroke-width="3.5" stroke-dasharray="${m.obj.last_5h.pct_pro}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div class="absolute text-center">
+                  <span class="text-lg font-black mono text-white">${m.obj.last_5h.pct_pro}%</span>
+                  <span class="block text-[9px] text-slate-400 uppercase font-bold">5h 소진</span>
+                </div>
+              </div>
+
+              <div class="flex-1 space-y-1.5 text-xs">
+                <div class="flex justify-between text-slate-400">
+                  <span>5시간 토큰량:</span>
+                  <span class="mono text-white font-bold">${m.obj.last_5h.tokens.toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                  <span>호출 횟수:</span>
+                  <span class="mono text-slate-300 font-semibold">${m.obj.last_5h.calls} calls</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                  <span>5h 기준 한도:</span>
+                  <span class="mono text-indigo-300 text-[11px]">${m.obj.last_5h.limit}</span>
+                </div>
+                <div class="pt-1 text-[11px] text-${m.color}-300 mono flex items-center gap-1 font-semibold">
+                  <span>⏱️ 롤링 리셋:</span>
+                  <span>약 ${m.obj.resets_in_minutes}분 후</span>
+                </div>
               </div>
             </div>
-            <div class="flex-1 space-y-0.5 text-[11px]">
-              <div class="flex justify-between text-slate-400"><span>5시간 토큰:</span><span class="mono text-white font-semibold">${m.obj.last_5h.tokens.toLocaleString()}</span></div>
-              <div class="flex justify-between text-slate-400"><span>호출 횟수:</span><span class="mono text-slate-300">${m.obj.last_5h.calls} calls</span></div>
-              <div class="text-[10px] text-${m.color}-300 mono">⏱️ 리셋 약 ${m.obj.resets_in_minutes}분 후</div>
+
+            <!-- Tier Breakdown Comparison -->
+            <div class="grid grid-cols-2 gap-2 mt-3 text-[11px]">
+              <div class="p-2.5 rounded-xl bg-slate-900/60 border border-white/5 space-y-0.5">
+                <span class="text-slate-400 text-[10px]">Pro/Plus 플랜</span>
+                <div class="mono font-bold text-white text-xs">${m.obj.last_5h.pct_pro}% 소진</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-900/60 border border-white/5 space-y-0.5">
+                <span class="text-slate-400 text-[10px]">Team/Org 플랜</span>
+                <div class="mono font-bold text-slate-300 text-xs">${m.obj.last_5h.pct_team}% 소진</div>
+              </div>
             </div>
           </div>
 
-          <!-- 7-Day Weekly Limit Bar -->
-          <div class="space-y-1 text-xs">
-            <div class="flex justify-between text-slate-400 text-[11px]">
-              <span>주간(7일) 누적 사용률:</span>
-              <span class="mono text-white font-semibold">${m.obj.last_7d.pct_pro}% (${(m.obj.last_7d.tokens/1000000).toFixed(2)}M tok)</span>
+          <!-- 7-Day Weekly Limit Bar Block -->
+          <div class="space-y-2 pt-2 border-t border-white/5">
+            <div class="flex justify-between text-slate-300 text-xs">
+              <span class="font-semibold">주간(7일) 누적 사용량:</span>
+              <span class="mono text-white font-bold">${m.obj.last_7d.pct_pro}% (${(m.obj.last_7d.tokens/1000000).toFixed(2)}M / ${m.obj.last_7d.limit})</span>
             </div>
-            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-              <div class="${m.bar} h-full rounded-full transition-all duration-700" style="width: ${m.obj.last_7d.pct_pro}%"></div>
+            <div class="w-full bg-slate-800/80 h-3 rounded-full overflow-hidden p-0.5">
+              <div class="${m.bar} h-full rounded-full transition-all duration-700 shadow-sm" style="width: ${m.obj.last_7d.pct_pro}%"></div>
             </div>
-            <div class="text-[10px] text-slate-500 flex justify-between pt-0.5">
-              <span>주간 플랜 캡: ${m.obj.last_7d.limit}</span>
-              <span>Team 플랜: ${m.obj.last_7d.pct_team}%</span>
+            <div class="flex justify-between items-center text-[10px] text-slate-400">
+              <span>주간 리셋: 매주 월요일 00:00 UTC</span>
+              <span class="mono">Team 한도: ${m.obj.last_7d.pct_team}%</span>
             </div>
           </div>
         </div>
@@ -1040,6 +1085,22 @@
       }
     }
 
+
+
+    // Docs Sidebar Toggle
+    let docsSidebarVisible = true;
+    function toggleDocsSidebar() {
+      const sb = document.getElementById('docs-sidebar');
+      const txt = document.getElementById('docs-sidebar-state-txt');
+      docsSidebarVisible = !docsSidebarVisible;
+      if (docsSidebarVisible) {
+        sb.classList.remove('hidden');
+        if (txt) txt.innerText = '접기';
+      } else {
+        sb.classList.add('hidden');
+        if (txt) txt.innerText = '열기';
+      }
+    }
 
     // Active Ports & Processes
     async function loadPorts() {

@@ -385,11 +385,10 @@ def parse_token_metrics():
 
 
 
-def get_active_dev_ports():
-    """Detect all active listening TCP ports, identifying dev projects and processes."""
-    cmd = ["lsof", "-iTCP", "-sTCP:LISTEN", "-n", "-P"]
+def get_active_dev_ports(dev_only=True):
+    """Detect listening TCP ports. Defaults to dev projects only to avoid clutter and lag."""
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=3)
+        res = subprocess.run(["lsof", "-iTCP", "-sTCP:LISTEN", "-n", "-P"], capture_output=True, text=True, timeout=2)
     except Exception:
         return []
 
@@ -417,16 +416,15 @@ def get_active_dev_ports():
             continue
         port = int(port_match.group(1))
 
-        # Skip duplicates for same port & pid
         key = (port, pid_str)
         if key in seen:
             continue
         seen.add(key)
 
+        # Quick CWD check
         proc_cwd = "Unknown"
-        proc_cmd = command
         try:
-            cwd_res = subprocess.run(["lsof", "-a", "-p", pid_str, "-d", "cwd", "-Fn"], capture_output=True, text=True, timeout=1)
+            cwd_res = subprocess.run(["lsof", "-a", "-p", pid_str, "-d", "cwd", "-Fn"], capture_output=True, text=True, timeout=0.5)
             for l in cwd_res.stdout.splitlines():
                 if l.startswith("n"):
                     proc_cwd = l[1:]
@@ -434,15 +432,19 @@ def get_active_dev_ports():
         except Exception:
             pass
 
+        is_dev = proc_cwd.startswith(ALLOWED_DEV_ROOT)
+        if dev_only and not is_dev and port != PORT:
+            continue
+
+        proj_name = os.path.basename(proc_cwd) if is_dev else ("Agent Hub" if port == PORT else "System / External")
+
+        proc_cmd = command
         try:
-            cmd_res = subprocess.run(["ps", "-p", pid_str, "-o", "command="], capture_output=True, text=True, timeout=1)
+            cmd_res = subprocess.run(["ps", "-p", pid_str, "-o", "command="], capture_output=True, text=True, timeout=0.5)
             if cmd_res.returncode == 0 and cmd_res.stdout.strip():
                 proc_cmd = cmd_res.stdout.strip()
         except Exception:
             pass
-
-        is_dev_project = proc_cwd.startswith(ALLOWED_DEV_ROOT)
-        proj_name = os.path.basename(proc_cwd) if is_dev_project else "System / Background"
 
         ports.append({
             "port": port,
@@ -450,12 +452,11 @@ def get_active_dev_ports():
             "command": command,
             "cmdline": proc_cmd,
             "cwd": proc_cwd,
-            "is_dev": is_dev_project,
+            "is_dev": is_dev,
             "project_name": proj_name,
             "user": user
         })
 
-    # Sort so dev projects and low ports come first
     ports.sort(key=lambda x: (not x["is_dev"], x["port"]))
     return ports
 
@@ -493,83 +494,162 @@ def terminate_process_on_port(port=None, pid=None):
 def get_skills_catalog():
     curated = [
         {
-            "id": "figma-implement-design",
-            "name": "Figma 1:1 Implement Design",
-            "category": "UI & Design",
-            "rating": 4.9,
-            "reviews_count": 142,
-            "pros": "Figma AutoLayout, 디자인 토큰, Flexbox 100% 반영 코드 생성",
-            "cons": "Figma MCP 연동 설정 필요",
-            "verdict": "눈대중 마진 코딩을 완전히 제거해주는 프론트엔드 필수 스킬",
-            "compatible": ["Antigravity", "Codex", "Claude Code"]
+                "id": "figma-implement-design",
+                "name": "Figma 1:1 Implement Design",
+                "category": "UI & Design",
+                "rating": 4.9,
+                "reviews_count": 142,
+                "pros": "Figma AutoLayout, 디자인 토큰, Flexbox 100% 반영 코드 생성",
+                "cons": "Figma MCP 연동 설정 필요",
+                "verdict": "눈대중 마진 코딩을 완전히 제거해주는 프론트엔드 필수 스킬",
+                "compatible": [
+                        "Antigravity",
+                        "Codex",
+                        "Claude Code"
+                ]
         },
         {
-            "id": "flutter-design-token-guardian",
-            "name": "Flutter Design Token Guardian",
-            "category": "Mobile",
-            "rating": 4.8,
-            "reviews_count": 98,
-            "pros": "Color() 하드코딩 완전 차단, flutter analyze 0 issues 무결성 강제",
-            "cons": "프로젝트에 AppColors 정의가 선행되어야 함",
-            "verdict": "CampusYA 같은 엄격한 토큰 규칙을 요구하는 Flutter 프로젝트에 완벽",
-            "compatible": ["All CLI", "Antigravity"]
+                "id": "flutter-design-token-guardian",
+                "name": "Flutter Design Token Guardian",
+                "category": "Mobile",
+                "rating": 4.8,
+                "reviews_count": 98,
+                "pros": "Color() 하드코딩 완전 차단, flutter analyze 0 issues 무결성 강제",
+                "cons": "프로젝트에 AppColors 정의가 선행되어야 함",
+                "verdict": "CampusYA 같은 엄격한 토큰 규칙을 요구하는 Flutter 프로젝트에 완벽",
+                "compatible": [
+                        "All CLI",
+                        "Antigravity"
+                ]
         },
         {
-            "id": "modern-dashboard-design-system",
-            "name": "Modern Dashboard Design System",
-            "category": "UI & Design",
-            "rating": 4.9,
-            "reviews_count": 87,
-            "pros": "Linear/Vercel 급 다크 글래스모피즘, SVG 서큘러 쿼터 게이지, 100% 반응형 그리드",
-            "cons": "Tailwind CSS 필수",
-            "verdict": "촌스러운 UI를 최신 테크 기업 스타일로 탈바꿈시키는 디자인 치트키",
-            "compatible": ["React", "Next.js", "Vite"]
+                "id": "modern-dashboard-design-system",
+                "name": "Modern Dashboard Design System",
+                "category": "UI & Design",
+                "rating": 4.9,
+                "reviews_count": 87,
+                "pros": "Linear/Vercel 급 다크 글래스모피즘, SVG 서큘러 쿼터 게이지, 100% 반응형 그리드",
+                "cons": "Tailwind CSS 필수",
+                "verdict": "촌스러운 UI를 최신 테크 기업 스타일로 탈바꿈시키는 디자인 치트키",
+                "compatible": [
+                        "React",
+                        "Next.js",
+                        "Vite"
+                ]
         },
         {
-            "id": "tanstack-query-contract-generator",
-            "name": "TanStack Query Contract Gen",
-            "category": "Frontend & API",
-            "rating": 4.8,
-            "reviews_count": 115,
-            "pros": "DTO 타입, Axios API 함수, Query 훅, 캐시 무효화 3종 세트 동시 작성",
-            "cons": "TanStack Query v5 전용",
-            "verdict": "프론트/백엔드 통신 보일러플레이트를 10초 만에 완벽 생성",
-            "compatible": ["Next.js", "React"]
+                "id": "tanstack-query-contract-generator",
+                "name": "TanStack Query Contract Gen",
+                "category": "Frontend & API",
+                "rating": 4.8,
+                "reviews_count": 115,
+                "pros": "DTO 타입, Axios API 함수, Query 훅, 캐시 무효화 3종 세트 동시 작성",
+                "cons": "TanStack Query v5 전용",
+                "verdict": "프론트/백엔드 통신 보일러플레이트를 10초 만에 완벽 생성",
+                "compatible": [
+                        "Next.js",
+                        "React"
+                ]
         },
         {
-            "id": "react-native-ios-harness",
-            "name": "React Native iOS & Swift Widget Harness",
-            "category": "Mobile",
-            "rating": 4.9,
-            "reviews_count": 76,
-            "pros": "Safe Area, Swift 홈 위젯 레이아웃, 네이티브 변경 시 EAS OTA 배포 안전 잠금",
-            "cons": "Expo / iOS 환경 특화",
-            "verdict": "teumteum 앱처럼 픽셀 단위 iOS 디테일과 스토어 빌드 무결성을 수호함",
-            "compatible": ["Expo", "React Native"]
+                "id": "react-native-ios-harness",
+                "name": "React Native iOS & Swift Widget Harness",
+                "category": "Mobile",
+                "rating": 4.9,
+                "reviews_count": 76,
+                "pros": "Safe Area, Swift 홈 위젯 레이아웃, 네이티브 변경 시 EAS OTA 배포 안전 잠금",
+                "cons": "Expo / iOS 환경 특화",
+                "verdict": "teumteum 앱처럼 픽셀 단위 iOS 디테일과 스토어 빌드 무결성을 수호함",
+                "compatible": [
+                        "Expo",
+                        "React Native"
+                ]
         },
         {
-            "id": "git-rebase-conflict-resolver",
-            "name": "Git Rebase Conflict Resolver",
-            "category": "DevOps & Git",
-            "rating": 4.7,
-            "reviews_count": 164,
-            "pros": "충돌 마커 자동 감사, 비파괴적 안전 리베이스 continue 자동화",
-            "cons": "복잡한 비즈니스 로직 충돌은 사람의 의도 확인 권장",
-            "verdict": "매일 리베이스하다 스트레스받는 개발자들의 시간을 대폭 아껴줌",
-            "compatible": ["All Platforms"]
+                "id": "storybook-visual-token-sync",
+                "name": "Storybook Design Token Sync",
+                "category": "UI & Design",
+                "rating": 4.8,
+                "reviews_count": 68,
+                "pros": "1D1S/HIVCD 디자인 시스템의 CSF3 스토리 및 Tailwind 변수 100% 자동 동기화",
+                "cons": "Storybook 7+ 환경 필요",
+                "verdict": "독립 디자인 시스템 패키지를 제품 앱과 완벽히 일치시켜 유지보수성 극대화",
+                "compatible": [
+                        "Vite",
+                        "Storybook",
+                        "Next.js"
+                ]
         },
         {
-            "id": "product-planning-and-prd",
-            "name": "Product Planning & PRD Generator",
-            "category": "Planning",
-            "rating": 4.8,
-            "reviews_count": 64,
-            "pros": "린 캔버스, 유저 저니 맵, Given-When-Then 수용 기준 자동 도출",
-            "cons": "기획 상세에 따라 프롬프트 튜닝 필요",
-            "verdict": "개발 에이전트와 소통하기 전에 기획 싱크를 맞추는 최적의 사전 단계",
-            "compatible": ["All Platforms"]
+                "id": "spring-boot-jpa-architect",
+                "name": "Spring Boot 3 & JPA Record Architect",
+                "category": "Backend & API",
+                "rating": 4.9,
+                "reviews_count": 104,
+                "pros": "Entity 직접 노출 방지(Record DTO 강제), Lazy Loading N+1 쿼리 방어, Dockerfile 자동화",
+                "cons": "Java 17+ 및 Gradle 환경 권장",
+                "verdict": "hivcd-backend 및 please-2000won-backend 처럼 안정성이 중요한 서버에 필수",
+                "compatible": [
+                        "Spring Boot",
+                        "JVM",
+                        "Docker"
+                ]
+        },
+        {
+                "id": "expo-native-config-guardian",
+                "name": "Expo Native Config & EAS Shield",
+                "category": "Mobile",
+                "rating": 4.8,
+                "reviews_count": 89,
+                "pros": "app.json / Info.plist 네이티브 권한 불일치 방지, EAS 빌드 실패 원인 사전 감지",
+                "cons": "EAS CLI 설치 필요",
+                "verdict": "React Native 모바일 배포 시 번들러 충돌과 심사 반려를 원천 차단",
+                "compatible": [
+                        "Expo",
+                        "React Native"
+                ]
+        },
+        {
+                "id": "nextjs-app-router-cache-guard",
+                "name": "Next.js App Router Cache Guard",
+                "category": "Frontend & API",
+                "rating": 4.9,
+                "reviews_count": 132,
+                "pros": "Server Actions, revalidateTag, Dynamic Rendering 누락 방지 및 클라이언트 컴포넌트 경계 검증",
+                "cons": "Next.js 14/15 App Router 전용",
+                "verdict": "1D1S, hivcd-frontend 처럼 App Router를 주력으로 쓰는 웹의 데이터 정합성 보장",
+                "compatible": [
+                        "Next.js",
+                        "React"
+                ]
+        },
+        {
+                "id": "git-rebase-conflict-resolver",
+                "name": "Git Rebase Conflict Resolver",
+                "category": "DevOps & Git",
+                "rating": 4.7,
+                "reviews_count": 164,
+                "pros": "충돌 마커 자동 감사, 비파괴적 안전 리베이스 continue 자동화",
+                "cons": "복잡한 비즈니스 로직 충돌은 사람의 의도 확인 권장",
+                "verdict": "매일 리베이스하다 스트레스받는 개발자들의 시간을 대폭 아껴줌",
+                "compatible": [
+                        "All Platforms"
+                ]
+        },
+        {
+                "id": "product-planning-and-prd",
+                "name": "Product Planning & PRD Generator",
+                "category": "Planning",
+                "rating": 4.8,
+                "reviews_count": 64,
+                "pros": "린 캔버스, 유저 저니 맵, Given-When-Then 수용 기준 자동 도출",
+                "cons": "기획 상세에 따라 프롬프트 튜닝 필요",
+                "verdict": "개발 에이전트와 소통하기 전에 기획 싱크를 맞추는 최적의 사전 단계",
+                "compatible": [
+                        "All Platforms"
+                ]
         }
-    ]
+]
     custom = load_custom_skills()
     return custom + curated
 
