@@ -147,6 +147,74 @@ def list_skills():
     print("=" * 60 + "\n")
 
 
+def print_tokens():
+    import sys
+    sys.path.insert(0, os.path.join(REPO_ROOT, "tools", "agent-hub"))
+    import server
+    metrics = server.parse_token_metrics()
+
+    print("\n📊 Multi-Provider Token & Cost Analytics:")
+    print("=" * 60)
+    for provider, name in [("claude", "Anthropic Claude"), ("gemini", "Google Gemini"), ("gpt", "OpenAI GPT")]:
+        d = metrics.get(provider, {})
+        in_t = d.get("input", 0)
+        out_t = d.get("output", 0)
+        cost = d.get("cost", 0.0)
+        krw = round(cost * 1330)
+        print(f"🤖 {name}:")
+        print(f"   Input Tokens : {in_t:,}")
+        print(f"   Output Tokens: {out_t:,}")
+        if "cache_read" in d:
+            print(f"   Cache Read   : {d.get('cache_read', 0):,}")
+        print(f"   Est. Cost    : ${cost:.2f} (₩{krw:,})\n")
+
+    print("📁 Token Consumption by Project:")
+    for proj, val in sorted(metrics.get("by_project", {}).items(), key=lambda x: x[1]["total"], reverse=True):
+        print(f"   • {proj:25}: {val['total']:,} tokens (Claude: {val['claude']:,} | Gemini: {val['gemini']:,} | GPT: {val['gpt']:,})")
+    print("=" * 60 + "\n")
+
+
+def create_project(name, template="universal"):
+    import sys
+    sys.path.insert(0, os.path.join(REPO_ROOT, "tools", "agent-hub"))
+    import server
+    res = server.AgentHubRequestHandler(None, ("127.0.0.1", 0), None)
+    # Use server logic directly
+    allowed_root = server.ALLOWED_DEV_ROOT
+    target_path = os.path.join(allowed_root, name)
+    try:
+        safe_target = server.validate_safe_path(target_path, allowed_root)
+        if os.path.exists(safe_target):
+            print(f"❌ Error: Project '{name}' already exists at {safe_target}")
+            return
+        os.makedirs(safe_target, exist_ok=True)
+        init_harness(safe_target, template)
+        # Git init
+        import subprocess
+        subprocess.run(["git", "-C", safe_target, "init", "-b", "main"], check=True)
+        subprocess.run(["git", "-C", safe_target, "add", "."], check=True)
+        subprocess.run(["git", "-C", safe_target, "commit", "-m", f"chore: initial commit for {name} with agent harness"], check=True)
+        print(f"\n🎉 Successfully created project '{name}' at {safe_target} with '{template}' harness.")
+        print(f"👉 Next steps to connect GitHub:\n   cd {safe_target}\n   gh repo create hhhkdev/{name} --private --source=. --push\n")
+    except Exception as e:
+        print(f"❌ Security/Creation Error: {e}")
+
+
+def serve_dashboard(port=8765):
+    import sys
+    sys.path.insert(0, os.path.join(REPO_ROOT, "tools", "agent-hub"))
+    import server
+    from http.server import HTTPServer
+    httpd = HTTPServer(("127.0.0.1", port), server.AgentHubRequestHandler)
+    print(f"\n🛡️ Agent Hub Control Center running at: http://127.0.0.1:{port}")
+    print(f"🔒 Sandbox Whitelist: {server.ALLOWED_DEV_ROOT}")
+    print("Press Ctrl+C to exit.\n")
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\nAgent Hub stopped.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Agent Harness Management CLI")
     subparsers = parser.add_subparsers(dest="command")
@@ -160,6 +228,14 @@ def main():
     init_p.add_argument("--dry-run", action="store_true", help="Simulate without writing")
 
     subparsers.add_parser("list-skills", help="List archived skills")
+    subparsers.add_parser("tokens", help="Show token metrics across Claude, Gemini, GPT")
+
+    create_p = subparsers.add_parser("create-project", help="Create a new sandboxed project")
+    create_p.add_argument("name", help="Project name (under /Users/hhhk/dev)")
+    create_p.add_argument("--template", help="Harness template (nextjs-fullstack, react-native-expo, flutter-riverpod, spring-boot-jvm, design-system, universal)", default="universal")
+
+    serve_p = subparsers.add_parser("serve", help="Launch the Agent Hub Web Control Center")
+    serve_p.add_argument("--port", type=int, default=8765, help="Port to listen on")
 
     args = parser.parse_args()
 
@@ -169,9 +245,16 @@ def main():
         init_harness(os.path.abspath(args.path), args.template, args.dry_run)
     elif args.command == "list-skills":
         list_skills()
+    elif args.command == "tokens":
+        print_tokens()
+    elif args.command == "create-project":
+        create_project(args.name, args.template)
+    elif args.command == "serve":
+        serve_dashboard(args.port)
     else:
         parser.print_help()
 
 
 if __name__ == "__main__":
     main()
+
